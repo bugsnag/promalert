@@ -46,6 +46,6 @@ FROM alpine:3.11
 LABEL com.bugsnag.app="promalert"
 
 COPY --from=builder /build/promalert /app/
-COPY config.example.yaml /app/config.yml
+COPY config.bugsnag.yaml /app/config.yml
 
 CMD [ "/app/promalert" ]
