@@ -38,7 +38,6 @@ COPY --from=builder /build .
 RUN go mod download
 
 COPY .golangci.yml .
-COPY /tests /app/tests
 
 ################################################################################
 # FINAL IMAGE
@@ -46,9 +45,9 @@ COPY /tests /app/tests
 
 FROM alpine:3.11
 
-LABEL com.bugsnag.app="promtool"
+LABEL com.bugsnag.app="promalert"
 
-COPY --from=builder /build/promtool /app/
+COPY --from=builder /build/promalert /app/
 COPY config.example.yaml /app/config.yml
 
-CMD [ "/app/promtool" ]
+CMD [ "/app/promalert" ]
