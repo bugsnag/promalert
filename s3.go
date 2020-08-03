@@ -3,16 +3,17 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/globalsign/mgo/bson"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/globalsign/mgo/bson"
 )
 
 func UploadFile(bucket, region string, plot io.WriterTo) (string, error) {
@@ -61,5 +62,5 @@ func UploadFile(bucket, region string, plot io.WriterTo) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("https://%s.s3-%s.amazonaws.com/%s", bucket, region, tempFileName), err
+	return fmt.Sprintf("https://s3.amazonaws.com/%s/%s", bucket, tempFileName), err
 }
