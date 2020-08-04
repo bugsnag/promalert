@@ -88,12 +88,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
 
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
-		if severity == "warn" {
-			attachment.Color = "warning"
-		}
-		if severity == "critical" {
-			attachment.Color = "danger"
-		}
 		log.Print("Composing full message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
@@ -112,13 +106,18 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		alert.MessageBody = messageBlocks
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+		if severity == "warn" {
+			attachment.Color = "warning"
+		}
+		if severity == "critical" {
+			attachment.Color = "danger"
+		}
 
 		if alert.MessageTS != "" {
 			options = append(options, slack.MsgOptionBroadcast())
 			log.Print("Adding broadcast flag to message")
 		}
 	} else {
-		attachment.Color = "good"
 		log.Print("Composing short update message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
@@ -135,6 +134,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		}
 
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+		attachment.Color = "good"
 	}
 
 	if alert.MessageTS != "" {
