@@ -113,6 +113,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			log.Print("Adding broadcast flag to message")
 		}
 	} else {
+		attachment.Color = "good"
 		log.Print("Composing short update message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
