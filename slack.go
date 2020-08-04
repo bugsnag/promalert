@@ -25,7 +25,7 @@ func SlackUpdateAlertMessage(token, channel, timestamp string, messageOptions ..
 	return respChannel, respTimestamp, err
 }
 
-func ComposeResolveUpdateBody(alert Alert, headerTemplate string, images ...SlackImage) (slack.MsgOption, error) {
+func ComposeResolveUpdateBody(alert Alert, headerTemplate string, images ...SlackImage) ([]slack.Block, error) {
 	headerTpl, e := ParseTemplate(headerTemplate, alert)
 	if e != nil {
 		return nil, e
@@ -44,9 +44,8 @@ func ComposeResolveUpdateBody(alert Alert, headerTemplate string, images ...Slac
 		textBlock := slack.NewTextBlockObject("plain_text", image.Title, false, false)
 		blocks = append(blocks, slack.NewImageBlock(image.Url, "metric graph "+image.Title, "", textBlock))
 	}
-	messageBlocks := slack.MsgOptionBlocks(blocks...)
 
-	return messageBlocks, nil
+	return blocks, nil
 }
 
 func ComposeUpdateFooter(alert Alert, footerTemplate string) ([]slack.Block, error) {
