@@ -82,6 +82,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	options := make([]slack.MsgOption, 0)
 	attachment := slack.Attachment{}
+	attachment.Blocks.BlockSet = make([]slack.Block, 0)
 
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
 		if severity == "warn" {
@@ -107,7 +108,8 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		}
 
 		alert.MessageBody = messageBlocks
-		options = append(options, slack.MsgOptionBlocks(messageBlocks...))
+		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+
 		if alert.MessageTS != "" {
 			options = append(options, slack.MsgOptionBroadcast())
 			log.Print("Adding broadcast flag to message")
@@ -120,7 +122,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			return "", "", nil, err
 		}
 
-		messageBody, err := ComposeResolveUpdateBody(
+		messageBlocks, err := ComposeResolveUpdateBody(
 			alert,
 			viper.GetString("header_template"),
 			images...,
@@ -129,7 +131,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			return "", "", nil, err
 		}
 
-		options = append(options, messageBody)
+		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
 	}
 
 	if alert.MessageTS != "" {
@@ -163,6 +165,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		channel = alert.Channel
 	}
 
+	options = append(options, slack.MsgOptionAttachments(attachment))
 	respChannel, respTimestamp, err := SlackSendAlertMessage(
 		viper.GetString("slack_token"),
 		channel,
