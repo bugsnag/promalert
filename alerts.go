@@ -81,8 +81,15 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	log.Printf("no action on severity: %s", severity)
 
 	options := make([]slack.MsgOption, 0)
+	attachment := slack.Attachment{}
 
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
+		if severity == "warn" {
+			attachment.Color = "warning"
+		}
+		if severity == "critical" {
+			attachment.Color = "danger"
+		}
 		log.Print("Composing full message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
