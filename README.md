@@ -4,7 +4,7 @@ Yet another [Prometheus](https://prometheus.io/) Alertmanager webhook processor 
 ## How it works 
 Receive webhook from Alertmanager, draw images from alert expression, upload pictures to S3 bucket, generate public links, send a notification to Slack. 
 
-## Why pormalert?
+## Why Promalert?
 
 Standard prometheus slack receiver cant use threads and draw graphs from alert.
 
