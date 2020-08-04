@@ -125,7 +125,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	}
 
 	if alert.MessageTS != "" {
-		log.Printf("MessageTS founded, posting to thread: %s", alert.MessageTS)
+		log.Printf("MessageTS found, posting to thread: %s", alert.MessageTS)
 		options = append(options, slack.MsgOptionTS(alert.MessageTS))
 
 		updateBlocks := alert.MessageBody
@@ -164,7 +164,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		return "", "", nil, err
 	}
 
-	log.Printf("Slack message sended, channel: %s thread: %s", respChannel, respTimestamp)
+	log.Printf("Slack message sent, channel: %s thread: %s", respChannel, respTimestamp)
 
 	return respChannel, respTimestamp, alert.MessageBody, nil
 }
