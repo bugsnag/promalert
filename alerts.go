@@ -81,8 +81,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	log.Printf("no action on severity: %s", severity)
 
 	options := make([]slack.MsgOption, 0)
-	options = append(options, slack.MsgOptionIconURL("https://storage.googleapis.com/bugsnag-assets/prometheus_icon_96x96.png"))
-	options = append(options, slack.MsgOptionUsername("Prometheus"))
 
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
@@ -106,11 +104,14 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		alert.MessageBody = messageBlocks
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+
 		if severity == "warn" {
-			attachment.Color = "warning"
+			log.Print("Adding warning flag to message")
+			attachment.Color = "#d1ad1d"
 		}
 		if severity == "critical" {
-			attachment.Color = "danger"
+			log.Print("Adding danger flag to message")
+			attachment.Color = "#d11d1d"
 		}
 
 		if alert.MessageTS != "" {
@@ -134,7 +135,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		}
 
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
-		attachment.Color = "good"
+		attachment.Color = "#36a64f"
 	}
 
 	if alert.MessageTS != "" {
