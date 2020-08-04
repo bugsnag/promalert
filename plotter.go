@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/prometheus/prometheus/promql"
 	"image/color"
 	"io"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/prometheus/promql"
 
 	"github.com/prometheus/common/model"
 	"gonum.org/v1/plot"
@@ -112,12 +113,12 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 		return nil, fmt.Errorf("failed to create new plot: %v", err)
 	}
 
-	textFont, err := vg.MakeFont("Helvetica", 3*vg.Millimeter)
+	textFont, err := vg.MakeFont("Helvetica", 2.5*vg.Millimeter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load font: %v", err)
 	}
 
-	evalTextFont, err := vg.MakeFont("Helvetica", 5*vg.Millimeter)
+	evalTextFont, err := vg.MakeFont("Helvetica", 3*vg.Millimeter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load font: %v", err)
 	}
@@ -192,9 +193,9 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	p.Add(plotter.NewGrid())
 
 	// Draw plot in canvas with margin
-	margin := 6 * vg.Millimeter
-	width := 20 * vg.Centimeter
-	height := 10 * vg.Centimeter
+	margin := 3 * vg.Millimeter
+	width := 12 * vg.Centimeter
+	height := 6 * vg.Centimeter
 	c, err := draw.NewFormattedCanvas(width, height, "png")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create canvas: %v", err)
