@@ -81,6 +81,9 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	log.Printf("no action on severity: %s", severity)
 
 	options := make([]slack.MsgOption, 0)
+	options = append(options, slack.MsgOptionIconURL("https://storage.googleapis.com/bugsnag-assets/prometheus_icon_96x96.png"))
+	options = append(options, slack.MsgOptionUsername("Prometheus"))
+
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
 
