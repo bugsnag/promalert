@@ -105,16 +105,16 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		alert.MessageBody = messageBlocks
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
 
-		if severity == "warn" {
-			log.Print("Adding warning flag to message")
-			attachment.Color = "#d1ad1d"
-		}
-		if severity == "critical" {
-			log.Print("Adding danger flag to message")
-			attachment.Color = "#d11d1d"
-		}
-
 		if alert.MessageTS != "" {
+			if severity == "warn" {
+				log.Print("Adding warning flag to message")
+				attachment.Color = "#d1ad1d"
+			}
+			if severity == "critical" {
+				log.Print("Adding danger flag to message")
+				attachment.Color = "#d11d1d"
+			}
+			
 			options = append(options, slack.MsgOptionBroadcast())
 			log.Print("Adding broadcast flag to message")
 		}
