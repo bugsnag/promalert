@@ -134,8 +134,9 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			return "", "", nil, err
 		}
 
+		options = append(options, slack.MsgOptionBroadcast())
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
-		attachment.Color = "#36a64f"
+		attachment.Color = "#a6a6a6"
 	}
 
 	if alert.MessageTS != "" {
