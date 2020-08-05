@@ -85,6 +85,15 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
 
+	if severity == "warn" {
+		log.Print("Adding warning flag to message")
+		attachment.Color = "#d1ad1d"
+	}
+	if severity == "critical" {
+		log.Print("Adding danger flag to message")
+		attachment.Color = "#d11d1d"
+	}
+
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
 		log.Print("Composing full message")
 		images, err := alert.GeneratePictures()
@@ -106,15 +115,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
 
 		if alert.MessageTS != "" {
-			if severity == "warn" {
-				log.Print("Adding warning flag to message")
-				attachment.Color = "#d1ad1d"
-			}
-			if severity == "critical" {
-				log.Print("Adding danger flag to message")
-				attachment.Color = "#d11d1d"
-			}
-			
 			options = append(options, slack.MsgOptionBroadcast())
 			log.Print("Adding broadcast flag to message")
 		}
@@ -136,7 +136,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		options = append(options, slack.MsgOptionBroadcast())
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
-		attachment.Color = "#a6a6a6"
+		attachment.Color = "#36a64f"
 	}
 
 	if alert.MessageTS != "" {
