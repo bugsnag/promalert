@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/prometheus/prometheus/promql"
 	"image/color"
 	"io"
 	"log"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/prometheus/promql"
 
 	"github.com/prometheus/common/model"
 	"gonum.org/v1/plot"
@@ -70,30 +71,30 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 	}
 
 	var selectedMetrics model.Matrix
-	var founded bool
+	var found bool
 	for _, metric := range metrics {
 		log.Printf("Metric fetched: %v", metric.Metric)
-		founded = false
+		found = false
 		for label, value := range metric.Metric {
 			if originValue, ok := alert.Labels[string(label)]; ok {
 				if originValue == string(value) {
-					founded = true
+					found = true
 				} else {
-					founded = false
+					found = false
 					break
 				}
 			}
 		}
 
-		if founded {
-			log.Printf("Best match founded: %v", metric.Metric)
+		if found {
+			log.Printf("Best match found: %v", metric.Metric)
 			selectedMetrics = model.Matrix{metric}
 			break
 		}
 	}
 
-	if !founded {
-		log.Printf("Best match not founded, use entire dataset. Labels to search: %v", alert.Labels)
+	if !found {
+		log.Printf("Best match not found, use entire dataset. Labels to search: %v", alert.Labels)
 		selectedMetrics = metrics
 	}
 
@@ -112,12 +113,12 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 		return nil, fmt.Errorf("failed to create new plot: %v", err)
 	}
 
-	textFont, err := vg.MakeFont("Helvetica", 3*vg.Millimeter)
+	textFont, err := vg.MakeFont("Helvetica", 2.5*vg.Millimeter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load font: %v", err)
 	}
 
-	evalTextFont, err := vg.MakeFont("Helvetica", 5*vg.Millimeter)
+	evalTextFont, err := vg.MakeFont("Helvetica", 3*vg.Millimeter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load font: %v", err)
 	}
@@ -129,6 +130,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 		YAlign: draw.YBottom,
 	}
 
+	//p.Y.Min = 0
 	p.X.Tick.Marker = plot.TimeTicks{Format: "15:04:05"}
 	p.X.Tick.Label.Font = textFont
 	p.Y.Tick.Label.Font = textFont
@@ -192,21 +194,21 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	p.Add(plotter.NewGrid())
 
 	// Draw plot in canvas with margin
-	margin := 6 * vg.Millimeter
-	width := 20 * vg.Centimeter
-	height := 10 * vg.Centimeter
+	margin := 3 * vg.Millimeter
+	width := 12 * vg.Centimeter
+	height := 6 * vg.Centimeter
 	c, err := draw.NewFormattedCanvas(width, height, "png")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create canvas: %v", err)
 	}
 
-	cropedCanvas := draw.Crop(draw.New(c), margin, -margin, margin, -margin)
-	p.Draw(cropedCanvas)
+	croppedCanvas := draw.Crop(draw.New(c), margin, -margin, margin, -margin)
+	p.Draw(croppedCanvas)
 
 	// Draw last evaluated value
 	evalText := fmt.Sprintf("latest evaluation: %.2f", lastEvalValue)
 
-	plotterCanvas := p.DataCanvas(cropedCanvas)
+	plotterCanvas := p.DataCanvas(croppedCanvas)
 
 	trX, trY := p.Transforms(&plotterCanvas)
 	evalRectangle := evalTextStyle.Rectangle(evalText)

@@ -82,6 +82,9 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	options := make([]slack.MsgOption, 0)
 
+	attachment := slack.Attachment{}
+	attachment.Blocks.BlockSet = make([]slack.Block, 0)
+
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
 		log.Print("Composing full message")
 		images, err := alert.GeneratePictures()
@@ -100,7 +103,17 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		}
 
 		alert.MessageBody = messageBlocks
-		options = append(options, slack.MsgOptionBlocks(messageBlocks...))
+		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+
+		if severity == "warn" {
+			log.Print("Adding warning flag to message")
+			attachment.Color = "#d1ad1d"
+		}
+		if severity == "critical" {
+			log.Print("Adding danger flag to message")
+			attachment.Color = "#d11d1d"
+		}
+
 		if alert.MessageTS != "" {
 			options = append(options, slack.MsgOptionBroadcast())
 			log.Print("Adding broadcast flag to message")
@@ -112,7 +125,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			return "", "", nil, err
 		}
 
-		messageBody, err := ComposeResolveUpdateBody(
+		messageBlocks, err := ComposeResolveUpdateBody(
 			alert,
 			viper.GetString("header_template"),
 			images...,
@@ -121,11 +134,12 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			return "", "", nil, err
 		}
 
-		options = append(options, messageBody)
+		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+		attachment.Color = "#36a64f"
 	}
 
 	if alert.MessageTS != "" {
-		log.Printf("MessageTS founded, posting to thread: %s", alert.MessageTS)
+		log.Printf("MessageTS found, posting to thread: %s", alert.MessageTS)
 		options = append(options, slack.MsgOptionTS(alert.MessageTS))
 
 		updateBlocks := alert.MessageBody
@@ -155,6 +169,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		channel = alert.Channel
 	}
 
+	options = append(options, slack.MsgOptionAttachments(attachment))
 	respChannel, respTimestamp, err := SlackSendAlertMessage(
 		viper.GetString("slack_token"),
 		channel,
@@ -164,7 +179,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		return "", "", nil, err
 	}
 
-	log.Printf("Slack message sended, channel: %s thread: %s", respChannel, respTimestamp)
+	log.Printf("Slack message sent, channel: %s thread: %s", respChannel, respTimestamp)
 
 	return respChannel, respTimestamp, alert.MessageBody, nil
 }
