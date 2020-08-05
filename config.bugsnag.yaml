@@ -10,15 +10,15 @@ metric_resolution: 100
 
 header_template: |
   *{{ .Labels.alertname }}*
-  [Status]: {{if eq .Status "firing" }}:fire::fire::fire:{{else}}:white_check_mark::white_check_mark::white_check_mark:{{ end }}
+  *Status:* {{if eq .Status "firing" }}:fire:{{else}}:white_check_mark::{{ end }}
 
 footer_template: |
   {{if eq .Status "firing" }}:fire: Refired{{else}}:white_check_mark: Resolved{{ end }} {{ dateFormat "15:04:05" now }}
 
 message_template: |
   :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
-  {{- if .Labels.runbook }} :notebook: *<{{ .Labels.runbook }}|Runbook>*{{ end }}
-  {{- if .Annotations.runbook_url }} :notebook: *<{{ .Annotations.runbook_url }}|Runbook>*{{ end }}
+  {{- if .Annotations.alertman_url }} :bell: *<{{ .Annotations.alertman_url }}|Alerts>*{{ end }}
+  {{- if .Annotations.runbook }} :notebook: *<{{ .Annotations.runbook }}|Runbook>*{{ end }}
 
   *Alert:* {{ if .Annotations.title }}{{ .Annotations.title }}{{ end }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
   {{ if .Labels.severity }}*Severity:*  `{{ .Labels.severity }}`{{ end }}
@@ -27,4 +27,3 @@ message_template: |
   *Details:*
     {{ range $key, $value := .Labels }} • {{ $key }}: {{ $value }}
     {{ end }}
-
