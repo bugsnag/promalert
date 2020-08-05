@@ -130,6 +130,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 		YAlign: draw.YBottom,
 	}
 
+	//p.Y.Min = 0
 	p.X.Tick.Marker = plot.TimeTicks{Format: "15:04:05"}
 	p.X.Tick.Label.Font = textFont
 	p.Y.Tick.Label.Font = textFont
