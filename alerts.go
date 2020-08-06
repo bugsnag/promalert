@@ -86,11 +86,9 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
 
 	if severity == "warn" {
-		log.Print("Adding warning flag to message")
 		attachment.Color = "#d1ad1d"
 	}
 	if severity == "critical" {
-		log.Print("Adding danger flag to message")
 		attachment.Color = "#d11d1d"
 	}
 
@@ -150,6 +148,12 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		updateAttachment := slack.Attachment{}
 		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
+		switch severity {
+		case "warn":
+			updateAttachment.Color = "#d1ad1d"
+		case "critical":
+			updateAttachment.Color = "#d11d1d"
+		}
 
 		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
 			viper.GetString("slack_token"),
