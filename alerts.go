@@ -84,7 +84,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
-
 	switch severity {
 	case "warn":
 		attachment.Color = "#d1ad1d"
