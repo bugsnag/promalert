@@ -84,13 +84,10 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
-
-	if severity == "warn" {
-		log.Print("Adding warning flag to message")
+	switch severity {
+	case "warn":
 		attachment.Color = "#d1ad1d"
-	}
-	if severity == "critical" {
-		log.Print("Adding danger flag to message")
+	case "critical":
 		attachment.Color = "#d11d1d"
 	}
 
@@ -143,19 +140,25 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		log.Printf("MessageTS found, posting to thread: %s", alert.MessageTS)
 		options = append(options, slack.MsgOptionTS(alert.MessageTS))
 
-		updateBlocks := alert.MessageBody
 		d, err := ComposeUpdateFooter(alert, viper.GetString("footer_template"))
 		if err != nil {
 			return "", "", nil, err
 		}
 
-		updateBlocks = append(updateBlocks, d...)
+		updateAttachment := slack.Attachment{}
+		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
+		switch severity {
+		case "warn":
+			updateAttachment.Color = "#d1ad1d"
+		case "critical":
+			updateAttachment.Color = "#d11d1d"
+		}
 
 		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
 			viper.GetString("slack_token"),
 			alert.Channel,
 			alert.MessageTS,
-			slack.MsgOptionBlocks(updateBlocks...),
+			slack.MsgOptionAttachments(updateAttachment),
 		)
 		if err != nil {
 			return "", "", nil, err
