@@ -84,14 +84,14 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
-	// palette: https://coolors.co/c200fb-ec0868-fc2f00-ec7d10-ffbc0a
+	// palette: https://bugsnag-component-library.netlify.app/?path=/docs/docs-colors--page
 	switch severity {
 	case "warn":
-		attachment.Color = "#ffa300" // yellow
+		attachment.Color = "#ffa300" // sunflower
 	case "critical":
-		attachment.Color = "#ff5a60" // orange
+		attachment.Color = "#ff5a60" // coral
 	case "page":
-		attachment.Color = "#a15fff" // scarlet
+		attachment.Color = "#a15fff" // orchid
 	}
 
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
@@ -152,11 +152,11 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
 		switch severity {
 		case "warn":
-			attachment.Color = "#ffa300" // yellow
+			attachment.Color = "#ffa300" // sunflower
 		case "critical":
-			attachment.Color = "#ff5a60" // orange
+			attachment.Color = "#ff5a60" // coral
 		case "page":
-			attachment.Color = "#a15fff" // scarlet
+			attachment.Color = "#a15fff" // orchid
 		}
 
 		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
