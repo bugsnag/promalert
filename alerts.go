@@ -87,11 +87,11 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	// palette: https://coolors.co/c200fb-ec0868-fc2f00-ec7d10-ffbc0a
 	switch severity {
 	case "warn":
-		attachment.Color = "#ffbc0a" // yellow
+		attachment.Color = "#ffa300" // yellow
 	case "critical":
-		attachment.Color = "#ec7d10" // orange
+		attachment.Color = "#ff5a60" // orange
 	case "page":
-		attachment.Color = "#fc2f00" // scarlet
+		attachment.Color = "#a15fff" // scarlet
 	}
 
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
@@ -136,7 +136,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		options = append(options, slack.MsgOptionBroadcast())
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
-		attachment.Color = "#36a64f"
+		attachment.Color = "#8cc63f"
 	}
 
 	if alert.MessageTS != "" {
@@ -152,11 +152,11 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
 		switch severity {
 		case "warn":
-			attachment.Color = "#ffbc0a" // yellow
+			attachment.Color = "#ffa300" // yellow
 		case "critical":
-			attachment.Color = "#ec7d10" // orange
+			attachment.Color = "#ff5a60" // orange
 		case "page":
-			attachment.Color = "#fc2f00" // scarlet
+			attachment.Color = "#a15fff" // scarlet
 		}
 
 		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
