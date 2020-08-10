@@ -84,11 +84,14 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	attachment := slack.Attachment{}
 	attachment.Blocks.BlockSet = make([]slack.Block, 0)
+	// palette: https://bugsnag-component-library.netlify.app/?path=/docs/docs-colors--page
 	switch severity {
 	case "warn":
-		attachment.Color = "#d1ad1d"
+		attachment.Color = "#ffa300" // sunflower
 	case "critical":
-		attachment.Color = "#d11d1d"
+		attachment.Color = "#ff5a60" // coral
+	case "page":
+		attachment.Color = "#a15fff" // orchid
 	}
 
 	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
@@ -133,7 +136,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		options = append(options, slack.MsgOptionBroadcast())
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
-		attachment.Color = "#36a64f"
+		attachment.Color = "#8cc63f" // green
 	}
 
 	if alert.MessageTS != "" {
@@ -149,9 +152,11 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
 		switch severity {
 		case "warn":
-			updateAttachment.Color = "#d1ad1d"
+			attachment.Color = "#ffa300" // sunflower
 		case "critical":
-			updateAttachment.Color = "#d11d1d"
+			attachment.Color = "#ff5a60" // coral
+		case "page":
+			attachment.Color = "#a15fff" // orchid
 		}
 
 		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
