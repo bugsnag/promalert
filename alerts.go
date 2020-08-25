@@ -150,14 +150,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		updateAttachment := slack.Attachment{}
 		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
-		switch severity {
-		case "warn":
-			attachment.Color = "#ffa300" // sunflower
-		case "critical":
-			attachment.Color = "#ff5a60" // coral
-		case "page":
-			attachment.Color = "#a15fff" // orchid
-		}
 
 		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
 			viper.GetString("slack_token"),
