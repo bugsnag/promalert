@@ -10,7 +10,7 @@ metric_resolution: 100
 
 header_template: |
   *{{ .Labels.alertname }}*
-  *Status:* {{if eq .Status "firing" }}:fire:{{else}}:white_check_mark::{{ end }}
+  *Status:* {{if eq .Status "firing" }}:fire: Firing{{else}}:white_check_mark: Resolved{{ end }}
 
 footer_template: |
   {{if eq .Status "firing" }}:fire: Refired{{else}}:white_check_mark: Resolved{{ end }} {{ dateFormat "15:04:05" (now) "UTC" }}
