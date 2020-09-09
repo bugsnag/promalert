@@ -94,7 +94,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		attachment.Color = "#a15fff" // orchid
 	}
 
-	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
+	if alert.Status == AlertStatusFiring {
 		log.Print("Composing full message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
