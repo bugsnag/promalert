@@ -11,9 +11,10 @@ metric_resolution: 100
 header_template: |
   *{{ .Labels.alertname }}*
   *Status:* {{if eq .Status "firing" }}:fire: Firing{{else}}:white_check_mark: Resolved{{ end }}
-
-footer_template: |
-  {{if eq .Status "firing" }}:fire: Refired{{else}}:white_check_mark: Resolved{{ end }} {{ dateFormat "15:04:05" (now) "UTC" }}
+  *Alert:* {{ if .Annotations.title }}{{ .Annotations.title }}{{ end }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+  
+# footer_template: |
+#   {{if eq .Status "firing" }}:fire: Refired{{else}}:white_check_mark: Resolved{{ end }} {{ dateFormat "15:04:05" (now) "UTC" }}
 
 message_template: |
   :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
