@@ -140,31 +140,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
 	}
 
-	// if alert.MessageTS != "" {
-	// 	log.Printf("MessageTS found, posting to thread: %s", alert.MessageTS)
-	// 	options = append(options, slack.MsgOptionTS(alert.MessageTS))
-
-	// 	d, err := ComposeUpdateFooter(alert, viper.GetString("footer_template"))
-	// 	if err != nil {
-	// 		return "", "", nil, err
-	// 	}
-
-	// 	updateAttachment := slack.Attachment{}
-	// 	updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
-
-	// 	respChannel, respTimestamp, err := SlackUpdateAlertMessage(
-	// 		viper.GetString("slack_token"),
-	// 		alert.Channel,
-	// 		alert.MessageTS,
-	// 		slack.MsgOptionAttachments(updateAttachment),
-	// 	)
-	// 	if err != nil {
-	// 		return "", "", nil, err
-	// 	}
-
-	// 	log.Printf("Slack message updated, channel: %s thread: %s", respChannel, respTimestamp)
-	// }
-
 	channel := viper.GetString("slack_channel")
 
 	if alert.Channel != "" {
