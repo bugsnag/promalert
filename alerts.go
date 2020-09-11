@@ -94,7 +94,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		attachment.Color = "#a15fff" // orchid
 	}
 
-	if alert.Status == AlertStatusFiring || alert.MessageTS == "" {
+	if alert.Status == AlertStatusFiring {
 		log.Print("Composing full message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
@@ -120,6 +120,8 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		}
 	} else {
 		log.Print("Composing short update message")
+		attachment.Color = "#8cc63f" // green
+
 		images, err := alert.GeneratePictures()
 		if err != nil {
 			return "", "", nil, err
@@ -136,32 +138,6 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		options = append(options, slack.MsgOptionBroadcast())
 		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
-		attachment.Color = "#8cc63f" // green
-	}
-
-	if alert.MessageTS != "" {
-		log.Printf("MessageTS found, posting to thread: %s", alert.MessageTS)
-		options = append(options, slack.MsgOptionTS(alert.MessageTS))
-
-		d, err := ComposeUpdateFooter(alert, viper.GetString("footer_template"))
-		if err != nil {
-			return "", "", nil, err
-		}
-
-		updateAttachment := slack.Attachment{}
-		updateAttachment.Blocks.BlockSet = append(alert.MessageBody, d...)
-
-		respChannel, respTimestamp, err := SlackUpdateAlertMessage(
-			viper.GetString("slack_token"),
-			alert.Channel,
-			alert.MessageTS,
-			slack.MsgOptionAttachments(updateAttachment),
-		)
-		if err != nil {
-			return "", "", nil, err
-		}
-
-		log.Printf("Slack message updated, channel: %s thread: %s", respChannel, respTimestamp)
 	}
 
 	channel := viper.GetString("slack_channel")
@@ -180,7 +156,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		return "", "", nil, err
 	}
 
-	log.Printf("Slack message sent, channel: %s thread: %s", respChannel, respTimestamp)
+	log.Printf("Slack message sent, channel: %s timestamp: %s", respChannel, respTimestamp)
 
 	return respChannel, respTimestamp, alert.MessageBody, nil
 }

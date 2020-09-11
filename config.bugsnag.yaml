@@ -10,20 +10,15 @@ metric_resolution: 100
 
 header_template: |
   *{{ .Labels.alertname }}*
-  *Status:* {{if eq .Status "firing" }}:fire:{{else}}:white_check_mark::{{ end }}
-
-footer_template: |
-  {{if eq .Status "firing" }}:fire: Refired{{else}}:white_check_mark: Resolved{{ end }} {{ dateFormat "15:04:05" (now) "UTC" }}
-
+  *Status:* {{if eq .Status "firing" }}:fire: Firing{{else}}:white_check_mark: Resolved{{ end }}
+  {{ if .Labels.severity }}*Severity:*  `{{ .Labels.severity }}`{{ end }}
+  *Alert:* {{ if .Annotations.title }}{{ .Annotations.title }}{{ end }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+  
 message_template: |
+  {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
   :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
   {{- if .Annotations.alertman_url }} :bell: *<{{ .Annotations.alertman_url }}|Alerts>*{{ end }}
   {{- if .Annotations.runbook }} :notebook: *<{{ .Annotations.runbook }}|Runbook>*{{ end }}
-
-  *Alert:* {{ if .Annotations.title }}{{ .Annotations.title }}{{ end }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
-  {{ if .Labels.severity }}*Severity:*  `{{ .Labels.severity }}`{{ end }}
-  {{ if .Annotations.message }}*Message:*  {{ .Annotations.message }}{{ end }}
-  {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
   *Details:*
     {{ range $key, $value := .Labels }} • {{ $key }}: {{ $value }}
     {{ end }}
