@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"log"
 	"net/http/httputil"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func healthz(c *gin.Context) {
@@ -48,6 +49,10 @@ func webhook(c *gin.Context) {
 
 				log.Printf("Slack update sended, channel: %s thread: %s", respChannel, respTimestamp)
 			} else {
+				// override channel if specified in rule
+				if m.CommonLabels["channel"] != "" {
+					alert.Channel = m.CommonLabels["channel"]
+				}
 				// post new message
 				respChannel, respTimestamp, messageBody, err := alert.PostMessage()
 				if err != nil {
