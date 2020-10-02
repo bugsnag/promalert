@@ -76,7 +76,7 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 }
 
 func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
-	log.Printf("Alert: status=%s,Labels=%v,Annotations=%v", alert.Status, alert.Labels, alert.Annotations)
+	log.Printf("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
 	severity := alert.Labels["severity"]
 	log.Printf("no action on severity: %s", severity)
 
