@@ -39,7 +39,6 @@ func ComposeResolveUpdateBody(alert Alert, headerTemplate string, images ...Slac
 
 	var blocks []slack.Block
 	blocks = append(blocks, slack.NewSectionBlock(statusBlock, nil, nil))
-	blocks = append(blocks, slack.NewDividerBlock())
 	for _, image := range images {
 		textBlock := slack.NewTextBlockObject("plain_text", image.Title, false, false)
 		blocks = append(blocks, slack.NewImageBlock(image.Url, "metric graph "+image.Title, "", textBlock))
@@ -61,7 +60,6 @@ func ComposeUpdateFooter(alert Alert, footerTemplate string) ([]slack.Block, err
 	)
 
 	var blocks []slack.Block
-	blocks = append(blocks, slack.NewDividerBlock())
 	blocks = append(blocks, slack.NewContextBlock("", footerBlock))
 
 	return blocks, nil
@@ -91,7 +89,6 @@ func ComposeMessageBody(alert Alert, messageTemplate, headerTemplate string, ima
 	)
 	var blocks []slack.Block
 	blocks = append(blocks, slack.NewSectionBlock(statusBlock, nil, nil))
-	blocks = append(blocks, slack.NewDividerBlock())
 	blocks = append(blocks, slack.NewSectionBlock(textBlockObj, nil, nil))
 	for _, image := range images {
 		textBlock := slack.NewTextBlockObject("plain_text", image.Title, false, false)
