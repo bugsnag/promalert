@@ -66,6 +66,7 @@ Environment variables prefix: `PROMALERT_`
 | `message_template`  | Slack message template. Go template syntax        | [`config.example.yaml`](config.example.yaml#L18) |
 | `header_template`   | Slack message header template. Go template syntax | [`config.example.yaml`](config.example.yaml#L11) |
 | `footer_template`   | Slack message footer template. Go template syntax | [`config.example.yaml`](config.example.yaml#L15) |
+| `graph_scale`       | Scale the graph image                             | `1.0`                                            |
 
 ### AWS
 AWS credentials parsed by [aws-go-client](https://github.com/aws/aws-sdk-go) in the following [order](https://github.com/aws/aws-sdk-go#configuring-credentials):

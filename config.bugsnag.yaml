@@ -15,10 +15,10 @@ header_template: |
   *Alert:* {{ if .Annotations.title }}{{ .Annotations.title }}{{ end }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
   
 message_template: |
-  {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
-  :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
+  *Actions:* :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
   {{- if .Annotations.alertman_url }} :bell: *<{{ .Annotations.alertman_url }}|Alerts>*{{ end }}
   {{- if .Annotations.runbook }} :notebook: *<{{ .Annotations.runbook }}|Runbook>*{{ end }}
+  {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
   *Details:*
     {{ range $key, $value := .Labels }} • {{ $key }}: {{ $value }}
     {{ end }}

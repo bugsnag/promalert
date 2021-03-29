@@ -17,6 +17,8 @@ import (
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
+
+	"github.com/spf13/viper"
 )
 
 // Only show important part of metric name
@@ -108,17 +110,20 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 }
 
 func PlotMetric(metrics model.Matrix, level float64, direction string) (io.WriterTo, error) {
+	viper.SetDefault("graph_scale", 1.0)
+	var graphScale = viper.GetFloat64("graph_scale")
+
 	p, err := plot.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new plot: %v", err)
 	}
 
-	textFont, err := vg.MakeFont("Helvetica", 2.5*vg.Millimeter)
+	textFont, err := vg.MakeFont("Helvetica", vg.Length(2.5*graphScale)*vg.Millimeter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load font: %v", err)
 	}
 
-	evalTextFont, err := vg.MakeFont("Helvetica", 3*vg.Millimeter)
+	evalTextFont, err := vg.MakeFont("Helvetica", vg.Length(3*graphScale)*vg.Millimeter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load font: %v", err)
 	}
@@ -136,7 +141,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	p.Y.Tick.Label.Font = textFont
 	p.Legend.Font = textFont
 	p.Legend.Top = true
-	p.Legend.YOffs = 15 * vg.Millimeter
+	p.Legend.YOffs = vg.Length(15*graphScale) * vg.Millimeter
 
 	// Color palette for drawing lines
 	paletteSize := 8
@@ -194,9 +199,9 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	p.Add(plotter.NewGrid())
 
 	// Draw plot in canvas with margin
-	margin := 3 * vg.Millimeter
-	width := 12 * vg.Centimeter
-	height := 6 * vg.Centimeter
+	margin := vg.Length(3*graphScale) * vg.Millimeter
+	width := vg.Length(12*graphScale) * vg.Centimeter
+	height := vg.Length(6*graphScale) * vg.Centimeter
 	c, err := draw.NewFormattedCanvas(width, height, "png")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create canvas: %v", err)
