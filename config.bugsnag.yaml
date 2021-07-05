@@ -16,7 +16,8 @@ header_template: |
   
 message_template: |
   *Actions:* :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
-  {{- if .Annotations.alertman_url }} :bell: *<{{ .Annotations.alertman_url }}|Alerts>*{{ end }}
+  {{- if .Annotations.alertman_url }} :bell: *<{{ .Annotations.alertman_url }}|View Alert>*{{ end }}
+  {{- if .Annotations.silence_url }} :no_bell: *<{{ .Annotations.silence_url }}|Silence Alert>*{{ end }}
   {{- if .Annotations.runbook }} :notebook: *<{{ .Annotations.runbook }}|Runbook>*{{ end }}
   {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
   *Details:*
