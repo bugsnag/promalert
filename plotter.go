@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/prometheus/prometheus/promql"
 
 	"github.com/prometheus/common/model"
@@ -115,17 +116,17 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 
 	p, err := plot.New()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new plot: %v", err)
+		return nil, errors.Wrap(err, "failed to create new plot")
 	}
 
 	textFont, err := vg.MakeFont("Helvetica", vg.Length(2.5*graphScale)*vg.Millimeter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load font: %v", err)
+		return nil, errors.Wrap(err, "failed to load font")
 	}
 
 	evalTextFont, err := vg.MakeFont("Helvetica", vg.Length(3*graphScale)*vg.Millimeter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load font: %v", err)
+		return nil, errors.Wrap(err, "failed to load font")
 	}
 
 	evalTextStyle := draw.TextStyle{
@@ -147,7 +148,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	paletteSize := 8
 	palette, err := brewer.GetPalette(brewer.TypeAny, "Dark2", paletteSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get color palette: %v", err)
+		return nil, errors.Wrap(err, "failed to get color palette")
 	}
 	colors := palette.Colors()
 
@@ -169,7 +170,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 
 			f, err := strconv.ParseFloat(fs, 64)
 			if err != nil {
-				return nil, fmt.Errorf("sample value not float: %s", v.Value.String())
+				return nil, errors.Wrap(err, "sample value not float: "+v.Value.String())
 			}
 			data = append(data, plotter.XY{X: float64(v.Timestamp.Unix()), Y: f})
 			lastEvalValue = f
@@ -204,7 +205,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	height := vg.Length(6*graphScale) * vg.Centimeter
 	c, err := draw.NewFormattedCanvas(width, height, "png")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create canvas: %v", err)
+		return nil, errors.Wrap(err, "failed to create canvas")
 	}
 
 	croppedCanvas := draw.Crop(draw.New(c), margin, -margin, margin, -margin)
@@ -236,7 +237,7 @@ func drawLine(data plotter.XYs, colors []color.Color, s int, paletteSize int, p 
 	if len(data) > 0 {
 		l, err = plotter.NewLine(data)
 		if err != nil {
-			return &plotter.Line{}, fmt.Errorf("failed to create line: %v", err)
+			return &plotter.Line{}, errors.Wrap(err, "failed to create line")
 		}
 
 		l.LineStyle.Width = vg.Points(1)

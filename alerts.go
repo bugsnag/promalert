@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"strconv"
@@ -62,12 +61,12 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 			alert,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("Plotter error: %v\n", err)
+			return nil, errors.Wrap(err, "Plotter error")
 		}
 
 		publicURL, err := UploadFile(viper.GetString("s3_bucket"), viper.GetString("s3_region"), plot)
 		if err != nil {
-			return nil, fmt.Errorf("S3 error: %v\n", err)
+			return nil, errors.Wrap(err, "S3 error")
 		}
 		log.Printf("Graph uploaded, URL: %s", publicURL)
 
