@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/url"
 	"strconv"
 	"time"
@@ -68,7 +67,7 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "S3 error")
 		}
-		log.Printf("Graph uploaded, URL: %s", publicURL)
+		clog.Info("Graph uploaded, URL: %s", publicURL)
 
 		images = append(images, SlackImage{
 			Url:   publicURL,
