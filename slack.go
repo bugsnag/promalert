@@ -117,7 +117,7 @@ func ParseTemplate(messageTemplate string, alert Alert) (bytes.Buffer, error) {
 	msgTpl, err := template.New("message").Funcs(funcMap).Parse(messageTemplate)
 
 	if err != nil {
-		clog.Error("error in template: %s", err.Error())
+		clog.Errorf("error in template: %s", err.Error())
 		_ = bugsnag.Notify(errors.Wrap(err, "error in template"))
 		return bytes.Buffer{}, err
 	}

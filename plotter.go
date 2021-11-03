@@ -29,7 +29,7 @@ func GetPlotExpr(alertFormula string) []PlotExpr {
 	expr, _ := promql.ParseExpr(alertFormula)
 	if parenExpr, ok := expr.(*promql.ParenExpr); ok {
 		expr = parenExpr.Expr
-		clog.Info("Removing redundant brackets: %v", expr.String())
+		clog.Infof("Removing redundant brackets: %v", expr.String())
 	}
 
 	if binaryExpr, ok := expr.(*promql.BinaryExpr); ok {
@@ -44,7 +44,7 @@ func GetPlotExpr(alertFormula string) []PlotExpr {
 		case promql.ItemGTE, promql.ItemGTR:
 			alertOperator = ">"
 		default:
-			clog.Info("Unexpected operator: %v", binaryExpr.Op.String())
+			clog.Infof("Unexpected operator: %v", binaryExpr.Op.String())
 			alertOperator = ">"
 		}
 
@@ -55,13 +55,13 @@ func GetPlotExpr(alertFormula string) []PlotExpr {
 			Level:    alertLevel,
 		}}
 	} else {
-		clog.Info("Non binary excpression: %v", alertFormula)
+		clog.Infof("Non binary expression: %v", alertFormula)
 		return nil
 	}
 }
 
 func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration, prometheusUrl string, alert Alert) (io.WriterTo, error) {
-	clog.Info("Querying Prometheus %s", expr.Formula)
+	clog.Infof("Querying Prometheus %s", expr.Formula)
 	metrics, err := Metrics(
 		prometheusUrl,
 		expr.Formula,
@@ -76,7 +76,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 	var selectedMetrics model.Matrix
 	var found bool
 	for _, metric := range metrics {
-		clog.Info("Metric fetched: %v", metric.Metric)
+		clog.Infof("Metric fetched: %v", metric.Metric)
 		found = false
 		for label, value := range metric.Metric {
 			if originValue, ok := alert.Labels[string(label)]; ok {
@@ -90,18 +90,18 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 		}
 
 		if found {
-			clog.Info("Best match found: %v", metric.Metric)
+			clog.Infof("Best match found: %v", metric.Metric)
 			selectedMetrics = model.Matrix{metric}
 			break
 		}
 	}
 
 	if !found {
-		clog.Info("Best match not found, use entire dataset. Labels to search: %v", alert.Labels)
+		clog.Infof("Best match not found, use entire dataset. Labels to search: %v", alert.Labels)
 		selectedMetrics = metrics
 	}
 
-	clog.Info("Creating plot: %s", alert.Annotations["summary"])
+	clog.Infof("Creating plot: %s", alert.Annotations["summary"])
 	plottedMetric, err := PlotMetric(selectedMetrics, expr.Level, expr.Operator)
 	if err != nil {
 		return nil, err

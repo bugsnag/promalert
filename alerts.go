@@ -21,7 +21,7 @@ func (alert Alert) Hash() string {
 		err = errors.Wrap(err, "Hash cant be calculated")
 		_ = bugsnag.Notify(err)
 	}
-	clog.Info("Hash calculated: %d", hash)
+	clog.Infof("Hash calculated: %d", hash)
 
 	return strconv.FormatUint(hash, 10)
 }
@@ -67,7 +67,7 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "S3 error")
 		}
-		clog.Info("Graph uploaded, URL: %s", publicURL)
+		clog.Infof("Graph uploaded, URL: %s", publicURL)
 
 		images = append(images, SlackImage{
 			Url:   publicURL,
@@ -79,9 +79,9 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 }
 
 func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
-	clog.Warn("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
+	clog.Warnf("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
 	severity := alert.Labels["severity"]
-	clog.Warn("no action on severity: %s", severity)
+	clog.Warnf("no action on severity: %s", severity)
 
 	options := make([]slack.MsgOption, 0)
 
@@ -159,7 +159,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		return "", "", nil, err
 	}
 
-	clog.Info("Slack message sent, channel: %s timestamp: %s", respChannel, respTimestamp)
+	clog.Infof("Slack message sent, channel: %s timestamp: %s", respChannel, respTimestamp)
 	return respChannel, respTimestamp, alert.MessageBody, nil
 }
 
@@ -177,6 +177,6 @@ func (alert Alert) GetPlotTimeRange() (time.Time, time.Duration) {
 			duration = time.Minute * 20
 		}
 	}
-	clog.Info("Querying Time %v Duration: %v", queryTime, duration)
+	clog.Infof("Querying Time %v Duration: %v", queryTime, duration)
 	return queryTime, duration
 }

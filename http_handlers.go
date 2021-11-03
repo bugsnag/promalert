@@ -23,14 +23,14 @@ func webhook(c *gin.Context) {
 		if err != nil {
 			err = errors.Wrap(err, "Error dumping request")
 			_ = bugsnag.Notify(err)
-			clog.Error(err)
+			clog.Error(err.Error())
 		}
-		clog.Debug("New request: %s", string(requestDump))
+		clog.Infof("New request: %s", string(requestDump))
 	}
 
 	var m HookMessage
 	if c.ShouldBindJSON(&m) == nil {
-		clog.Info("Alerts: GroupLabels=%v, CommonLabels=%v", m.GroupLabels, m.CommonLabels)
+		clog.Infof("Alerts: GroupLabels=%v, CommonLabels=%v", m.GroupLabels, m.CommonLabels)
 
 		for _, alert := range m.Alerts {
 			if prevAlert, founded := FindAlert(alert); founded {
@@ -49,7 +49,7 @@ func webhook(c *gin.Context) {
 					AddAlert(alert)
 				}
 
-				clog.Info("Slack update sended, channel: %s thread: %s", respChannel, respTimestamp)
+				clog.Infof("Slack update sended, channel: %s thread: %s", respChannel, respTimestamp)
 			} else {
 				// override channel if specified in rule
 				if m.CommonLabels["channel"] != "" {
