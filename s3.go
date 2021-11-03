@@ -14,6 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/globalsign/mgo/bson"
+	"github.com/pkg/errors"
+
+	"github.com/bugsnag/bugsnag-go/v2"
 )
 
 func UploadFile(bucket, region string, plot io.WriterTo) (string, error) {
@@ -22,21 +25,25 @@ func UploadFile(bucket, region string, plot io.WriterTo) (string, error) {
 
 	f, err := ioutil.TempFile("", "promplot-*.png")
 	if err != nil {
-		return "", fmt.Errorf("failed to create tmp file: %v", err)
+		return "", errors.Wrap(err, "failed to create tmp file")
 	}
 	defer func() {
 		err = f.Close()
 		if err != nil {
-			panic(fmt.Errorf("failed to close tmp file: %v", err))
+			err = errors.Wrap(err, "failed to close tmp file")
+			_ = bugsnag.Notify(err)
+			panic(err)
 		}
 		err := os.Remove(f.Name())
 		if err != nil {
-			panic(fmt.Errorf("failed to delete tmp file: %v", err))
+			err = errors.Wrap(err, "failed to delete tmp file")
+			_ = bugsnag.Notify(err)
+			panic(err)
 		}
 	}()
 	_, err = plot.WriteTo(f)
 	if err != nil {
-		return "", fmt.Errorf("failed to write plot to file: %v", err)
+		return "", errors.Wrap(err, "failed to write plot to file")
 	}
 
 	// get the file size and read
