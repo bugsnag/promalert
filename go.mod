@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.22.0
 	github.com/bugsnag/bugsnag-go v1.5.3
 	github.com/bugsnag/bugsnag-go/v2 v2.1.2
+	github.com/bugsnag/microkit/clog v0.0.5
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
@@ -29,7 +30,6 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/ugorji/go v1.1.7 // indirect
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b // indirect
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	gonum.org/v1/gonum v0.0.0-20190805055805-3ce8ac2a2fb1 // indirect
 	gonum.org/v1/plot v0.0.0-20190615073203-9aa86143727f
