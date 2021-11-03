@@ -6,6 +6,9 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/bugsnag/bugsnag-go/v2"
+	"github.com/bugsnag/microkit/clog"
+	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/spf13/cast"
 )
@@ -112,7 +115,13 @@ func ParseTemplate(messageTemplate string, alert Alert) (bytes.Buffer, error) {
 		},
 	}
 	msgTpl, err := template.New("message").Funcs(funcMap).Parse(messageTemplate)
-	fatal(err, "error in template")
+
+	if err != nil {
+		clog.Error("error in template: %s", err.Error())
+		_ = bugsnag.Notify(errors.Wrap(err, "error in template"))
+		return bytes.Buffer{}, err
+	}
+
 	var tpl bytes.Buffer
 	if err := msgTpl.Execute(&tpl, alert); err != nil {
 		return bytes.Buffer{}, err
