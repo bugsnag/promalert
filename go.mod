@@ -1,6 +1,6 @@
 module github.com/bugsnag/promalert
 
-go 1.13
+go 1.16
 
 require (
 	github.com/ajstarks/svgo v0.0.0-20181006003313-6ce6a3bcf6cd // indirect
