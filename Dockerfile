@@ -7,17 +7,15 @@ FROM golang:1.16.9-alpine as builder
 # Install Git
 RUN apk add --no-cache git libc6-compat make
 
+# Enable go modules so we can download go tools with specific versions
+ENV GO111MODULE=on
+
 # go build will fail in alpine if this is enabled as it looks for gcc
 ENV CGO_ENABLED 0
 
-WORKDIR /build/
-
-COPY go.mod /build/
-
-RUN go mod download
-
 # Copy all source code and required files into the build directory
-COPY *.go /build/
+COPY . /build/
+WORKDIR /build/
 
 # Build the executable
 RUN go build -o promalert
