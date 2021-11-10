@@ -2,7 +2,7 @@
 # BUILDER/DEVELOPMENT IMAGE
 ################################################################################
 
-FROM golang:1.13.8-alpine as builder
+FROM golang:1.16.9-alpine as builder
 
 # Install Git
 RUN apk add --no-cache git libc6-compat make
@@ -26,7 +26,7 @@ RUN go build -o promalert
 # LINT IMAGE
 ################################################################################
 
-FROM golang:1.13.8 as ci
+FROM golang:1.16.9 as ci
 
 # Install golangci
 RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.21.0
