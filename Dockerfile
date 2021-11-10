@@ -13,10 +13,6 @@ ENV GO111MODULE=on
 # go build will fail in alpine if this is enabled as it looks for gcc
 ENV CGO_ENABLED 0
 
-# Set up access to private repos
-ENV GOPRIVATE=github.com/bugsnag
-RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
-
 # Copy all source code and required files into the build directory
 COPY . /build/
 WORKDIR /build/
