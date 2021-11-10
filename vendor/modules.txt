@@ -43,7 +43,7 @@ github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
-# github.com/bugsnag/bugsnag-go v1.5.3
+# github.com/bugsnag/bugsnag-go v2.1.2+incompatible
 ## explicit
 github.com/bugsnag/bugsnag-go
 github.com/bugsnag/bugsnag-go/device

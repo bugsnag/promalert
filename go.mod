@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/ajstarks/svgo v0.0.0-20181006003313-6ce6a3bcf6cd // indirect
 	github.com/aws/aws-sdk-go v1.22.0
-	github.com/bugsnag/bugsnag-go v1.5.3
+	github.com/bugsnag/bugsnag-go v2.1.2+incompatible
 	github.com/bugsnag/bugsnag-go/v2 v2.1.2
 	github.com/bugsnag/microkit/clog v0.0.5
 	github.com/fogleman/gg v1.3.0 // indirect
