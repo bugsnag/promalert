@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"image/color"
 	"io"
-	"log"
 	"regexp"
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/prometheus/prometheus/promql"
 
 	"github.com/prometheus/common/model"
@@ -18,6 +18,7 @@ import (
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 
+	"github.com/bugsnag/microkit/clog"
 	"github.com/spf13/viper"
 )
 
@@ -28,7 +29,7 @@ func GetPlotExpr(alertFormula string) []PlotExpr {
 	expr, _ := promql.ParseExpr(alertFormula)
 	if parenExpr, ok := expr.(*promql.ParenExpr); ok {
 		expr = parenExpr.Expr
-		log.Printf("Removing redundant brackets: %v", expr.String())
+		clog.Infof("Removing redundant brackets: %v", expr.String())
 	}
 
 	if binaryExpr, ok := expr.(*promql.BinaryExpr); ok {
@@ -36,14 +37,14 @@ func GetPlotExpr(alertFormula string) []PlotExpr {
 
 		switch binaryExpr.Op {
 		case promql.ItemLAND:
-			log.Printf("Logical condition, drawing sides separately")
+			clog.Warn("Logical condition, drawing sides separately")
 			return append(GetPlotExpr(binaryExpr.LHS.String()), GetPlotExpr(binaryExpr.RHS.String())...)
 		case promql.ItemLTE, promql.ItemLSS:
 			alertOperator = "<"
 		case promql.ItemGTE, promql.ItemGTR:
 			alertOperator = ">"
 		default:
-			log.Printf("Unexpected operator: %v", binaryExpr.Op.String())
+			clog.Infof("Unexpected operator: %v", binaryExpr.Op.String())
 			alertOperator = ">"
 		}
 
@@ -54,13 +55,13 @@ func GetPlotExpr(alertFormula string) []PlotExpr {
 			Level:    alertLevel,
 		}}
 	} else {
-		log.Printf("Non binary excpression: %v", alertFormula)
+		clog.Infof("Non binary expression: %v", alertFormula)
 		return nil
 	}
 }
 
 func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration, prometheusUrl string, alert Alert) (io.WriterTo, error) {
-	log.Printf("Querying Prometheus %s", expr.Formula)
+	clog.Infof("Querying Prometheus %s", expr.Formula)
 	metrics, err := Metrics(
 		prometheusUrl,
 		expr.Formula,
@@ -75,7 +76,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 	var selectedMetrics model.Matrix
 	var found bool
 	for _, metric := range metrics {
-		log.Printf("Metric fetched: %v", metric.Metric)
+		clog.Infof("Metric fetched: %v", metric.Metric)
 		found = false
 		for label, value := range metric.Metric {
 			if originValue, ok := alert.Labels[string(label)]; ok {
@@ -89,18 +90,18 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 		}
 
 		if found {
-			log.Printf("Best match found: %v", metric.Metric)
+			clog.Infof("Best match found: %v", metric.Metric)
 			selectedMetrics = model.Matrix{metric}
 			break
 		}
 	}
 
 	if !found {
-		log.Printf("Best match not found, use entire dataset. Labels to search: %v", alert.Labels)
+		clog.Infof("Best match not found, use entire dataset. Labels to search: %v", alert.Labels)
 		selectedMetrics = metrics
 	}
 
-	log.Printf("Creating plot: %s", alert.Annotations["summary"])
+	clog.Infof("Creating plot: %s", alert.Annotations["summary"])
 	plottedMetric, err := PlotMetric(selectedMetrics, expr.Level, expr.Operator)
 	if err != nil {
 		return nil, err
@@ -115,17 +116,17 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 
 	p, err := plot.New()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new plot: %v", err)
+		return nil, errors.Wrap(err, "failed to create new plot")
 	}
 
 	textFont, err := vg.MakeFont("Helvetica", vg.Length(2.5*graphScale)*vg.Millimeter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load font: %v", err)
+		return nil, errors.Wrap(err, "failed to load font")
 	}
 
 	evalTextFont, err := vg.MakeFont("Helvetica", vg.Length(3*graphScale)*vg.Millimeter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load font: %v", err)
+		return nil, errors.Wrap(err, "failed to load font")
 	}
 
 	evalTextStyle := draw.TextStyle{
@@ -147,7 +148,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	paletteSize := 8
 	palette, err := brewer.GetPalette(brewer.TypeAny, "Dark2", paletteSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get color palette: %v", err)
+		return nil, errors.Wrap(err, "failed to get color palette")
 	}
 	colors := palette.Colors()
 
@@ -169,7 +170,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 
 			f, err := strconv.ParseFloat(fs, 64)
 			if err != nil {
-				return nil, fmt.Errorf("sample value not float: %s", v.Value.String())
+				return nil, errors.Wrap(err, "sample value not float: "+v.Value.String())
 			}
 			data = append(data, plotter.XY{X: float64(v.Timestamp.Unix()), Y: f})
 			lastEvalValue = f
@@ -204,7 +205,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	height := vg.Length(6*graphScale) * vg.Centimeter
 	c, err := draw.NewFormattedCanvas(width, height, "png")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create canvas: %v", err)
+		return nil, errors.Wrap(err, "failed to create canvas")
 	}
 
 	croppedCanvas := draw.Crop(draw.New(c), margin, -margin, margin, -margin)
@@ -236,7 +237,7 @@ func drawLine(data plotter.XYs, colors []color.Color, s int, paletteSize int, p 
 	if len(data) > 0 {
 		l, err = plotter.NewLine(data)
 		if err != nil {
-			return &plotter.Line{}, fmt.Errorf("failed to create line: %v", err)
+			return &plotter.Line{}, errors.Wrap(err, "failed to create line")
 		}
 
 		l.LineStyle.Width = vg.Points(1)

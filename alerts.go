@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/url"
 	"strconv"
 	"time"
 
+	"github.com/bugsnag/bugsnag-go/v2"
+	"github.com/bugsnag/microkit/clog"
 	"github.com/mitchellh/hashstructure"
+	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/spf13/viper"
 )
@@ -16,8 +17,11 @@ func (alert Alert) Hash() string {
 	hash, err := hashstructure.Hash(map[string]KV{
 		"labels": alert.Labels,
 	}, nil)
-	fatal(err, "Hash cant be calculated")
-	log.Printf("Hash calculated: %d", hash)
+	if err != nil {
+		err = errors.Wrap(err, "Hash cant be calculated")
+		_ = bugsnag.Notify(err)
+	}
+	clog.Infof("Hash calculated: %d", hash)
 
 	return strconv.FormatUint(hash, 10)
 }
@@ -40,7 +44,6 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 			break
 		}
 	}
-	fmt.Println(alertFormula)
 
 	plotExpression := GetPlotExpr(alertFormula)
 	queryTime, duration := alert.GetPlotTimeRange()
@@ -57,14 +60,14 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 			alert,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("Plotter error: %v\n", err)
+			return nil, errors.Wrap(err, "Plotter error")
 		}
 
 		publicURL, err := UploadFile(viper.GetString("s3_bucket"), viper.GetString("s3_region"), plot)
 		if err != nil {
-			return nil, fmt.Errorf("S3 error: %v\n", err)
+			return nil, errors.Wrap(err, "S3 error")
 		}
-		log.Printf("Graph uploaded, URL: %s", publicURL)
+		clog.Infof("Graph uploaded, URL: %s", publicURL)
 
 		images = append(images, SlackImage{
 			Url:   publicURL,
@@ -76,9 +79,9 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 }
 
 func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
-	log.Printf("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
+	clog.Warnf("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
 	severity := alert.Labels["severity"]
-	log.Printf("no action on severity: %s", severity)
+	clog.Warnf("no action on severity: %s", severity)
 
 	options := make([]slack.MsgOption, 0)
 
@@ -95,7 +98,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	}
 
 	if alert.Status == AlertStatusFiring {
-		log.Print("Composing full message")
+		clog.Info("Composing full message")
 		images, err := alert.GeneratePictures()
 		if err != nil {
 			return "", "", nil, err
@@ -116,10 +119,10 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 		if alert.MessageTS != "" {
 			options = append(options, slack.MsgOptionBroadcast())
-			log.Print("Adding broadcast flag to message")
+			clog.Info("Adding broadcast flag to message")
 		}
 	} else {
-		log.Print("Composing short update message")
+		clog.Info("Composing short update message")
 		attachment.Color = "#8cc63f" // green
 
 		images, err := alert.GeneratePictures()
@@ -156,8 +159,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		return "", "", nil, err
 	}
 
-	log.Printf("Slack message sent, channel: %s timestamp: %s", respChannel, respTimestamp)
-
+	clog.Infof("Slack message sent, channel: %s timestamp: %s", respChannel, respTimestamp)
 	return respChannel, respTimestamp, alert.MessageBody, nil
 }
 
@@ -175,6 +177,6 @@ func (alert Alert) GetPlotTimeRange() (time.Time, time.Duration) {
 			duration = time.Minute * 20
 		}
 	}
-	log.Printf("Querying Time %v Duration: %v", queryTime, duration)
+	clog.Infof("Querying Time %v Duration: %v", queryTime, duration)
 	return queryTime, duration
 }
