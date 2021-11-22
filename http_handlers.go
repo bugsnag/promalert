@@ -33,7 +33,7 @@ func webhook(c *gin.Context) {
 		clog.Infof("Alerts: GroupLabels=%v, CommonLabels=%v", m.GroupLabels, m.CommonLabels)
 
 		for _, alert := range m.Alerts {
-			if prevAlert, founded := FindAlert(alert); founded {
+			if prevAlert, found := FindAlert(alert); found {
 				alert.Channel = prevAlert.Channel
 				alert.MessageTS = prevAlert.MessageTS
 				alert.MessageBody = prevAlert.MessageBody
@@ -51,6 +51,11 @@ func webhook(c *gin.Context) {
 
 				clog.Infof("Slack update sended, channel: %s thread: %s", respChannel, respTimestamp)
 			} else {
+				// shorten all URLs
+				cli := NewClient()
+				for k, v := range m.CommonAnnotations {
+					m.CommonAnnotations[k] = cli.ReplaceLinks(v)
+				}
 				// override channel if specified in rule
 				if m.CommonLabels["channel"] != "" {
 					alert.Channel = m.CommonLabels["channel"]
