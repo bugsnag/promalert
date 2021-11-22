@@ -1,10 +1,17 @@
+package main
+
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"strings"
 	"net/http"
-	"encoding/json"
 	"regexp"
+	"strings"
+
+	"github.com/bugsnag/microkit/clog"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 type Client struct {
@@ -14,6 +21,11 @@ type Client struct {
 	UserAgent  string
 }
 
+type SubmitParams struct {
+	URL      string `json:"target"`
+	ExpireIn string `json:"expire_in"`
+}
+
 func NewClient() *Client {
 	var cli Client
 	cli.ApiKey = viper.GetString("kutt_api_key")
@@ -21,6 +33,13 @@ func NewClient() *Client {
 	cli.UserAgent = "promalert/v1 (+https://github.com/bugsnag/promalert)"
 
 	return &cli
+}
+
+func (cli *Client) httpClient() *http.Client {
+	if cli.HTTPClient != nil {
+		return cli.HTTPClient
+	}
+	return http.DefaultClient
 }
 
 func (cli *Client) error(statusCode int, body io.Reader) error {
@@ -44,8 +63,8 @@ func (cli *Client) Submit(target string) (*URL, error) {
 	reqURL := cli.BaseURL + path
 
 	payload := &SubmitParams{
-		URL: target,
-		expire_in: "365d"
+		URL:      target,
+		ExpireIn: "365d",
 	}
 
 	jsonBytes, err := json.Marshal(payload)
@@ -78,15 +97,16 @@ func (cli *Client) Submit(target string) (*URL, error) {
 	return &u, nil
 }
 
-func (cli *Client) ReplaceLinks(target string) error, string {
-	r, _ := regexp.MustCompile(`(http[\w:+//.#?={}%]+)`)
+func (cli *Client) ReplaceLinks(target string) (error, string) {
+	r := regexp.MustCompile(`(http[\w:+//.#?={}%]+)`)
 	raw := r.FindAllString(target, -1)
 	for _, r := range raw {
-		p, err = cli.Submit(s)
+		url, err := cli.Submit(r)
 		if err != nil {
-			return target, err
+			return err, target
 		}
-		strings.Replace(target, r, p, 1)
+		clog.Infof("Shortened link: %d, to: %d", url.Target, url.ShortURL)
+		strings.Replace(target, r, url.ShortURL, 1)
 	}
-	return target, nil
+	return nil, target
 }
