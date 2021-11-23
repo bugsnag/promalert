@@ -3,13 +3,14 @@ package main
 import "time"
 
 type URL struct {
-	ID         string    `json:"id"`
-	Target     string    `json:"target"`
-	ShortURL   string    `json:"shortUrl"`
-	Password   bool      `json:"password"`
-	Reuse      bool      `json:"reuse"`
-	DomainID   string    `json:"domain_id"`
-	VisitCount int       `json:"visit_count"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	Address     string    `json:"address"`
+	Banned      bool      `json:"banned"`
+	CreatedAt   time.Time `json:"created_at"`
+	ID          string    `json:"id"`
+	Link        string    `json:"link"`
+	Password    bool      `json:"password"`
+	Target      string    `json:"target"`
+	Description string    `json:"description"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	VisitCount  int       `json:"visit_count"`
 }

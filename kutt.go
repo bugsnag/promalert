@@ -94,15 +94,15 @@ func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
 }
 
 func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, string) {
-	r := regexp.MustCompile(`(http[\w:+//.#?={}%]+)`)
+	r := regexp.MustCompile(`(http[\w:+//.#?={}%&]+)`)
 	raw := r.FindAllString(target, -1)
 	for _, r := range raw {
 		url, err := cli.Submit(ctx, r)
 		if err != nil {
 			return err, target
 		}
-		clog.Infof("Shortened link: %d, to: %d", url.Target, url.ShortURL)
-		strings.Replace(target, r, url.ShortURL, 1)
+		clog.Infof("Shortened link: %s, to: %s", url.Target, url.Link)
+		target = strings.Replace(target, r, url.Link, 1)
 	}
 	return nil, target
 }
