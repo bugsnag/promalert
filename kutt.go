@@ -42,7 +42,7 @@ func NewLinksClient() *Client {
 func (cli *Client) error(statusCode int, body io.Reader) error {
 	buf, err := ioutil.ReadAll(body)
 	if err != nil || len(buf) == 0 {
-		return errors.Errorf("request failed with status code %d", statusCode)
+		return errors.Errorf("Request failed with status code %d", statusCode)
 	}
 	return errors.Errorf("StatusCode: %d, Error: %s", statusCode, string(buf))
 }
@@ -65,18 +65,18 @@ func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
 
 	jsonBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("marshal json: %w", err)
+		return nil, fmt.Errorf("Marshal json: %w", err)
 	}
 
 	body := strings.NewReader(string(jsonBytes))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, body)
 	if err != nil {
-		return nil, fmt.Errorf("create HTTP request: %w", err)
+		return nil, fmt.Errorf("Create HTTP request: %w", err)
 	}
 
 	resp, err := cli.do(req)
 	if err != nil {
-		return nil, fmt.Errorf("do HTTP request: %w", err)
+		return nil, fmt.Errorf("Do HTTP request: %w", err)
 	}
 
 	defer resp.Body.Close()
@@ -87,7 +87,7 @@ func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
 
 	var u URL
 	if err := json.NewDecoder(resp.Body).Decode(&u); err != nil {
-		return nil, fmt.Errorf("parse HTTP body: %w", err)
+		return nil, fmt.Errorf("Parse HTTP body: %w", err)
 	}
 
 	return &u, nil
