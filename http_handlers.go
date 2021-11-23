@@ -40,6 +40,9 @@ func webhook(c *gin.Context) {
 				respChannel, respTimestamp, _, err := alert.PostMessage()
 				if err != nil {
 					c.String(500, "%v", err)
+					err = errors.Wrap(err, "Error posting Slack message")
+					_ = bugsnag.Notify(err)
+					clog.Error(err.Error())
 					return
 				}
 
@@ -78,6 +81,9 @@ func webhook(c *gin.Context) {
 				respChannel, respTimestamp, messageBody, err := alert.PostMessage()
 				if err != nil {
 					c.String(500, "%v", err)
+					err = errors.Wrap(err, "Error posting Slack message")
+					_ = bugsnag.Notify(err)
+					clog.Error(err.Error())
 					return
 				}
 
