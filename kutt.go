@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/bugsnag/microkit/clog"
 	"github.com/pkg/errors"
@@ -31,17 +33,10 @@ func NewLinksClient() *Client {
 	cli.ApiKey = viper.GetString("kutt_api_key")
 	cli.BaseURL = viper.GetString("kutt_base_url")
 	cli.UserAgent = "promalert/v1 (+https://github.com/bugsnag/promalert)"
-  cli.HTTPClient = &http.Client{
-  Timeout: time.Second * 10,
-}
-	return &cli
-}
-
-func (cli *Client) httpClient() *http.Client {
-	if cli.HTTPClient != nil {
-		return cli.HTTPClient
+	cli.HTTPClient = &http.Client{
+		Timeout: time.Second * 10,
 	}
-	return http.DefaultClient
+	return &cli
 }
 
 func (cli *Client) error(statusCode int, body io.Reader) error {
@@ -57,11 +52,11 @@ func (cli *Client) do(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", cli.UserAgent)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	return cli.httpClient().Do(req)
+	return cli.HTTPClient.Do(req)
 }
 
-func (cli *Client) Submit(target string) (*URL, error) {
-	reqURL := fmt.Sprintf("%s/%s, cli.BaseURL, "api/url/submit")
+func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
+	reqURL := fmt.Sprintf("%s/%s", cli.BaseURL, "api/url/submit")
 
 	payload := &SubmitParams{
 		URL:      target,
@@ -98,11 +93,11 @@ func (cli *Client) Submit(target string) (*URL, error) {
 	return &u, nil
 }
 
-func (cli *Client) ReplaceLinks(target string) (error, string) {
+func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, string) {
 	r := regexp.MustCompile(`(http[\w:+//.#?={}%]+)`)
 	raw := r.FindAllString(target, -1)
 	for _, r := range raw {
-		url, err := cli.Submit(r)
+		url, err := cli.Submit(ctx, r)
 		if err != nil {
 			return err, target
 		}

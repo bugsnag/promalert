@@ -52,9 +52,9 @@ func webhook(c *gin.Context) {
 				clog.Infof("Slack update sended, channel: %s thread: %s", respChannel, respTimestamp)
 			} else {
 				// shorten all URLs
-				cli := NewClient()
+				cli := NewLinksClient()
 				for k, txt := range m.CommonAnnotations {
-					err, n := cli.ReplaceLinks(txt)
+					err, n := cli.ReplaceLinks(c, txt)
 					if err != nil {
 						err = errors.Wrap(err, "Error shortening one or more links")
 						_ = bugsnag.Notify(err)
