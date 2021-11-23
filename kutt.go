@@ -107,7 +107,7 @@ func (cli *Client) Submit(ctx context.Context, target string) (*LinkResponse, er
 }
 
 func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, string) {
-	r := regexp.MustCompile(`(http[\w:+//.#?={}%&]+)`)
+	r := regexp.MustCompile(`(http[\w:+//.#?={}%&-]+)`)
 	raw := r.FindAllString(target, -1)
 	for _, r := range raw {
 		url, err := cli.Submit(ctx, r)

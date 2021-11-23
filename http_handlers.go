@@ -65,13 +65,6 @@ func webhook(c *gin.Context) {
 					}
 					alert.Annotations[k] = n
 				}
-				err, n := cli.ReplaceLinks(c, alert.GeneratorURL)
-				if err != nil {
-					err = errors.Wrap(err, "Error shortening one or more links")
-					_ = bugsnag.Notify(err)
-					clog.Error(err.Error())
-				}
-				alert.GeneratorURL = n
 
 				// override channel if specified in rule
 				if m.CommonLabels["channel"] != "" {
