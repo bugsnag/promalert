@@ -81,8 +81,6 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 	clog.Warnf("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
 	severity := alert.Labels["severity"]
-	clog.Warnf("no action on severity: %s", severity)
-
 	options := make([]slack.MsgOption, 0)
 
 	attachment := slack.Attachment{}
