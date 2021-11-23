@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 NAME=promalert
 HOST=gcr.io/bugsnag-155907
-VER=1.2.0
+VER=1.2.1
 IMAGE=$(HOST)/$(NAME):$(VER)
 
 .DEFAULT_GOAL := help
