@@ -28,6 +28,19 @@ type SubmitParams struct {
 	ExpireIn string `json:"expire_in"`
 }
 
+type LinkResponse struct {
+	Address     string    `json:"address"`
+	Banned      bool      `json:"banned"`
+	CreatedAt   time.Time `json:"created_at"`
+	ID          string    `json:"id"`
+	Link        string    `json:"link"`
+	Password    bool      `json:"password"`
+	Target      string    `json:"target"`
+	Description string    `json:"description"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	VisitCount  int       `json:"visit_count"`
+}
+
 func NewLinksClient() *Client {
 	var cli Client
 	cli.ApiKey = viper.GetString("kutt_api_key")
@@ -55,7 +68,7 @@ func (cli *Client) do(req *http.Request) (*http.Response, error) {
 	return cli.HTTPClient.Do(req)
 }
 
-func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
+func (cli *Client) Submit(ctx context.Context, target string) (*LinkResponse, error) {
 	reqURL := fmt.Sprintf("%s/%s", cli.BaseURL, "api/v2/links")
 
 	payload := &SubmitParams{
@@ -85,7 +98,7 @@ func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
 		return nil, fmt.Errorf("HTTP response: %w", cli.error(resp.StatusCode, resp.Body))
 	}
 
-	var u URL
+	var u LinkResponse
 	if err := json.NewDecoder(resp.Body).Decode(&u); err != nil {
 		return nil, fmt.Errorf("Parse HTTP body: %w", err)
 	}
