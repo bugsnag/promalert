@@ -60,7 +60,7 @@ func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
 
 	payload := &SubmitParams{
 		URL:      target,
-		ExpireIn: "365d",
+		ExpireIn: viper.GetString("kutt_link_expiry"),
 	}
 
 	jsonBytes, err := json.Marshal(payload)
