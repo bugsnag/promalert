@@ -7,9 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
+
+	"mvdan.cc/xurls/v2"
 
 	"github.com/bugsnag/microkit/clog"
 	"github.com/pkg/errors"
@@ -107,7 +108,7 @@ func (cli *Client) Submit(ctx context.Context, target string) (*LinkResponse, er
 }
 
 func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, string) {
-	r := regexp.MustCompile(`(http[\w:+//.#?={}%&-~]+)`)
+	r := xurls.Strict()
 	raw := r.FindAllString(target, -1)
 	for _, r := range raw {
 		url, err := cli.Submit(ctx, r)
