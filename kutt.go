@@ -26,12 +26,14 @@ type SubmitParams struct {
 	ExpireIn string `json:"expire_in"`
 }
 
-func NewClient() *Client {
+func NewLinksClient() *Client {
 	var cli Client
 	cli.ApiKey = viper.GetString("kutt_api_key")
 	cli.BaseURL = viper.GetString("kutt_base_url")
 	cli.UserAgent = "promalert/v1 (+https://github.com/bugsnag/promalert)"
-
+  cli.HTTPClient = &http.Client{
+  Timeout: time.Second * 10,
+}
 	return &cli
 }
 
@@ -59,8 +61,7 @@ func (cli *Client) do(req *http.Request) (*http.Response, error) {
 }
 
 func (cli *Client) Submit(target string) (*URL, error) {
-	path := "/api/url/submit"
-	reqURL := cli.BaseURL + path
+	reqURL := fmt.Sprintf("%s/%s, cli.BaseURL, "api/url/submit")
 
 	payload := &SubmitParams{
 		URL:      target,
@@ -73,7 +74,7 @@ func (cli *Client) Submit(target string) (*URL, error) {
 	}
 
 	body := strings.NewReader(string(jsonBytes))
-	req, err := http.NewRequest(http.MethodPost, reqURL, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, body)
 	if err != nil {
 		return nil, fmt.Errorf("create HTTP request: %w", err)
 	}
