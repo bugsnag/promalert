@@ -56,7 +56,7 @@ func (cli *Client) do(req *http.Request) (*http.Response, error) {
 }
 
 func (cli *Client) Submit(ctx context.Context, target string) (*URL, error) {
-	reqURL := fmt.Sprintf("%s/%s", cli.BaseURL, "api/url/submit")
+	reqURL := fmt.Sprintf("%s/%s", cli.BaseURL, "api/v2/links")
 
 	payload := &SubmitParams{
 		URL:      target,
