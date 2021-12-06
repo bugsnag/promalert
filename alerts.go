@@ -26,17 +26,7 @@ func (alert Alert) Hash() string {
 	return strconv.FormatUint(hash, 10)
 }
 
-func (alert Alert) GeneratePictures() ([]SlackImage, error) {
-	generatorUrl, err := url.Parse(alert.GeneratorURL)
-	if err != nil {
-		return nil, err
-	}
-
-	generatorQuery, err := url.ParseQuery(generatorUrl.RawQuery)
-	if err != nil {
-		return nil, err
-	}
-
+func (alert Alert) GeneratePictures(generatorQuery url.Values) ([]SlackImage, error) {
 	var alertFormula string
 	for key, param := range generatorQuery {
 		if key == "g0.expr" {
@@ -78,7 +68,7 @@ func (alert Alert) GeneratePictures() ([]SlackImage, error) {
 	return images, nil
 }
 
-func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
+func (alert Alert) PostMessage(generatorQuery url.Values) error {
 	clog.Warnf("Alert: channel=%s,status=%s,Labels=%v,Annotations=%v", alert.Channel, alert.Status, alert.Labels, alert.Annotations)
 	severity := alert.Labels["severity"]
 	options := make([]slack.MsgOption, 0)
@@ -97,9 +87,9 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 
 	if alert.Status == AlertStatusFiring {
 		clog.Info("Composing full message")
-		images, err := alert.GeneratePictures()
+		images, err := alert.GeneratePictures(generatorQuery)
 		if err != nil {
-			return "", "", nil, err
+			return err
 		}
 
 		messageBlocks, err := ComposeMessageBody(
@@ -109,7 +99,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			images...,
 		)
 		if err != nil {
-			return "", "", nil, err
+			return err
 		}
 
 		alert.MessageBody = messageBlocks
@@ -123,9 +113,9 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		clog.Info("Composing short update message")
 		attachment.Color = "#8cc63f" // green
 
-		images, err := alert.GeneratePictures()
+		images, err := alert.GeneratePictures(generatorQuery)
 		if err != nil {
-			return "", "", nil, err
+			return err
 		}
 
 		messageBlocks, err := ComposeResolveUpdateBody(
@@ -134,7 +124,7 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 			images...,
 		)
 		if err != nil {
-			return "", "", nil, err
+			return err
 		}
 
 		options = append(options, slack.MsgOptionBroadcast())
@@ -154,11 +144,11 @@ func (alert Alert) PostMessage() (string, string, []slack.Block, error) {
 		options...,
 	)
 	if err != nil {
-		return "", "", nil, err
+		return err
 	}
 
 	clog.Infof("Slack message sent, channel: %s timestamp: %s", respChannel, respTimestamp)
-	return respChannel, respTimestamp, alert.MessageBody, nil
+	return nil
 }
 
 func (alert Alert) GetPlotTimeRange() (time.Time, time.Duration) {

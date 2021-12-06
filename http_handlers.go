@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http/httputil"
+	"net/url"
 
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/bugsnag/microkit/clog"
@@ -33,58 +34,53 @@ func webhook(c *gin.Context) {
 		clog.Infof("Alerts: GroupLabels=%v, CommonLabels=%v", m.GroupLabels, m.CommonLabels)
 
 		for _, alert := range m.Alerts {
-			if prevAlert, found := FindAlert(alert); found {
-				alert.Channel = prevAlert.Channel
-				alert.MessageTS = prevAlert.MessageTS
-				alert.MessageBody = prevAlert.MessageBody
-				respChannel, respTimestamp, _, err := alert.PostMessage()
+			// shorten all URLs
+			cli := NewLinksClient()
+			for k, txt := range alert.Annotations {
+				err, n := cli.ReplaceLinks(c, txt)
 				if err != nil {
-					c.String(500, "%v", err)
-					err = errors.Wrap(err, "Error posting Slack message")
+					err = errors.Wrap(err, "Error shortening one or more links")
 					_ = bugsnag.Notify(err)
 					clog.Error(err.Error())
-					return
 				}
+				alert.Annotations[k] = n
+			}
 
-				if alert.Status == AlertStatusFiring {
-					alert.MessageTS = respTimestamp
-					alert.Channel = respChannel
-					AddAlert(alert)
-				}
+			generatorUrl, err := url.Parse(alert.GeneratorURL)
+			if err != nil {
+				err = errors.Wrap(err, "Could not get generator url")
+				_ = bugsnag.Notify(err)
+				clog.Error(err.Error())
+			}
 
-				clog.Infof("Slack update sended, channel: %s thread: %s", respChannel, respTimestamp)
-			} else {
-				// shorten all URLs
-				cli := NewLinksClient()
-				for k, txt := range alert.Annotations {
-					err, n := cli.ReplaceLinks(c, txt)
-					if err != nil {
-						err = errors.Wrap(err, "Error shortening one or more links")
-						_ = bugsnag.Notify(err)
-						clog.Error(err.Error())
-					}
-					alert.Annotations[k] = n
-				}
+			generatorQuery, err := url.ParseQuery(generatorUrl.RawQuery)
+			if err != nil {
+				err = errors.Wrap(err, "Could not get query from generator url")
+				_ = bugsnag.Notify(err)
+				clog.Error(err.Error())
+			}
 
-				// override channel if specified in rule
-				if m.CommonLabels["channel"] != "" {
-					alert.Channel = m.CommonLabels["channel"]
-				}
-				// post new message
-				respChannel, respTimestamp, messageBody, err := alert.PostMessage()
-				if err != nil {
-					c.String(500, "%v", err)
-					err = errors.Wrap(err, "Error posting Slack message")
-					_ = bugsnag.Notify(err)
-					clog.Error(err.Error())
-					return
-				}
+			// shorten generator URL
+			err, n := cli.ReplaceLinks(c, alert.GeneratorURL)
+			if err != nil {
+				err = errors.Wrap(err, "Error shortening generator URL")
+				_ = bugsnag.Notify(err)
+				clog.Error(err.Error())
+			}
+			alert.GeneratorURL = n
 
-				alert.MessageTS = respTimestamp
-				alert.Channel = respChannel
-				alert.MessageBody = messageBody
-
-				AddAlert(alert)
+			// override channel if specified in rule
+			if m.CommonLabels["channel"] != "" {
+				alert.Channel = m.CommonLabels["channel"]
+			}
+			// post new message
+			err = alert.PostMessage(generatorQuery)
+			if err != nil {
+				c.String(500, "%v", err)
+				err = errors.Wrap(err, "Error posting Slack message")
+				_ = bugsnag.Notify(err)
+				clog.Error(err.Error())
+				return
 			}
 		}
 
