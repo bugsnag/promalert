@@ -34,7 +34,7 @@ func webhook(c *gin.Context) {
 		clog.Infof("Alerts: GroupLabels=%v, CommonLabels=%v", m.GroupLabels, m.CommonLabels)
 
 		for _, alert := range m.Alerts {
-			// shorten all URLs
+			// shorten all alert annotation URLs
 			cli := NewLinksClient()
 			for k, txt := range alert.Annotations {
 				err, n := cli.ReplaceLinks(c, txt)
@@ -46,6 +46,7 @@ func webhook(c *gin.Context) {
 				alert.Annotations[k] = n
 			}
 
+			// get chart url
 			generatorUrl, err := url.Parse(alert.GeneratorURL)
 			if err != nil {
 				err = errors.Wrap(err, "Could not get generator url")
@@ -53,6 +54,7 @@ func webhook(c *gin.Context) {
 				clog.Error(err.Error())
 			}
 
+			// from the chart url get the expressions to build the charts
 			generatorQuery, err := url.ParseQuery(generatorUrl.RawQuery)
 			if err != nil {
 				err = errors.Wrap(err, "Could not get query from generator url")
@@ -73,6 +75,7 @@ func webhook(c *gin.Context) {
 			if m.CommonLabels["channel"] != "" {
 				alert.Channel = m.CommonLabels["channel"]
 			}
+
 			// post new message
 			err = alert.PostMessage(generatorQuery)
 			if err != nil {
