@@ -113,7 +113,7 @@ func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, stri
 	for _, r := range raw {
 		url, err := cli.Submit(ctx, r)
 		if err != nil {
-			return err, target
+			return err, r
 		}
 		clog.Infof("Shortened link: %s, to: %s", url.Target, url.Link)
 		target = strings.Replace(target, r, url.Link, 1)
