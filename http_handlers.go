@@ -49,6 +49,7 @@ func webhook(c *gin.Context) {
 							},
 							"Kutt": {
 								"URL": n,
+								"URLLength": len(n),
 							},
 						})
 					clog.Error(err.Error())
