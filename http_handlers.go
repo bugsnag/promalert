@@ -60,7 +60,7 @@ func webhook(c *gin.Context) {
 			// get chart url
 			generatorUrl, err := url.Parse(alert.GeneratorURL)
 			if err != nil {
-				err = errors.Wrap(err, "Could not get generator url")
+				err = errors.Wrap(err, "Could not parse generator url")
 				_ = bugsnag.Notify(err, ctx,
 					bugsnag.MetaData{
 						"Alert": {
