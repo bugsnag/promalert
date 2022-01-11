@@ -41,7 +41,7 @@ func webhook(c *gin.Context) {
 			for k, txt := range alert.Annotations {
 				err, n := cli.ReplaceLinks(ctx, txt)
 				if err != nil {
-					err = errors.Wrap(err, "Error shortening one or more links")
+					err = errors.Wrap(err, "Error whilst shortening links")
 					_ = bugsnag.Notify(err, ctx,
 						bugsnag.MetaData{
 							"Alert": {
