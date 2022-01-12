@@ -56,3 +56,17 @@ type PlotExpr struct {
 func (expr PlotExpr) String() string {
 	return fmt.Sprintf("%s %s %.2f", expr.Formula, expr.Operator, expr.Level)
 }
+
+func (expr PlotExpr) TruncatedString() string {
+	formulaString := expr.Formula
+	levelString := fmt.Sprintf("%.2f", expr.Level)
+	formulaLength := len(expr.Formula)
+	operatorLength := len(expr.Operator)
+	levelLength := len(levelString)
+	truncateText := "[TRUNCATED]"
+	if formulaLength + operatorLength + levelLength > MAX_TEXT_LENGTH {
+		truncateFormulaLength := MAX_TEXT_LENGTH - (operatorLength + levelLength + len(truncateText))
+		formulaString = fmt.Sprintf("%s%s", formulaString[:truncateFormulaLength], truncateText)
+	}
+	return fmt.Sprintf("%s %s %.2f", formulaString, expr.Operator, expr.Level)
+}
