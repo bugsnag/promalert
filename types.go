@@ -64,8 +64,9 @@ func (expr PlotExpr) TruncatedString() string {
 	operatorLength := len(expr.Operator)
 	levelLength := len(levelString)
 	truncateText := "[TRUNCATED]"
-	if formulaLength + operatorLength + levelLength > MAX_TEXT_LENGTH {
-		truncateFormulaLength := MAX_TEXT_LENGTH - (operatorLength + levelLength + len(truncateText))
+	// calculate length of output string including 2 spaces
+	if formulaLength + operatorLength + levelLength + 2 > MAX_TEXT_LENGTH {
+		truncateFormulaLength := MAX_TEXT_LENGTH - (operatorLength + levelLength + len(truncateText) + 2)
 		formulaString = fmt.Sprintf("%s%s", formulaString[:truncateFormulaLength], truncateText)
 	}
 	return fmt.Sprintf("%s %s %.2f", formulaString, expr.Operator, expr.Level)
