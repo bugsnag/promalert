@@ -12,12 +12,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 const MAX_TEXT_LENGTH = 2000
 
 func SlackSendAlertMessage(token, channel string, messageOptions ...slack.MsgOption) (string, string, error) {
-	api := slack.New(token)
+	api := slack.New(token, slack.OptionDebug(viper.GetBool("debug")))
 	respChannel, respTimestamp, err := api.PostMessage(channel, messageOptions...)
 	return respChannel, respTimestamp, err
 }
@@ -38,7 +39,7 @@ func ComposeResolveUpdateBody(alert Alert, headerTemplate string, images ...Slac
 	}
 	statusBlock := slack.NewTextBlockObject(
 		"mrkdwn",
-		headerTpl.String(),
+		truncateText(headerTpl.String(), MAX_TEXT_LENGTH),
 		false,
 		false,
 	)
@@ -46,8 +47,9 @@ func ComposeResolveUpdateBody(alert Alert, headerTemplate string, images ...Slac
 	var blocks []slack.Block
 	blocks = append(blocks, slack.NewSectionBlock(statusBlock, nil, nil))
 	for _, image := range images {
-		textBlock := slack.NewTextBlockObject("plain_text", image.Title, false, false)
-		blocks = append(blocks, slack.NewImageBlock(image.Url, "metric graph "+image.Title, "", textBlock))
+		textBlock := slack.NewTextBlockObject("plain_text", truncateText(image.Title, MAX_TEXT_LENGTH), false, false)
+		imageAltText := "metric graph " + image.Title
+		blocks = append(blocks, slack.NewImageBlock(image.Url, truncateText(imageAltText, MAX_TEXT_LENGTH), "", textBlock))
 	}
 
 	return blocks, nil
@@ -60,7 +62,7 @@ func ComposeUpdateFooter(alert Alert, footerTemplate string) ([]slack.Block, err
 	}
 	footerBlock := slack.NewTextBlockObject(
 		"mrkdwn",
-		footerTpl.String(),
+		truncateText(footerTpl.String(), MAX_TEXT_LENGTH),
 		false,
 		false,
 	)
