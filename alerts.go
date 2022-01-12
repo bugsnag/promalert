@@ -144,6 +144,12 @@ func (alert Alert) PostMessage(generatorQuery url.Values) error {
 		options...,
 	)
 	if err != nil {
+		_ = bugsnag.Notify(err,
+			bugsnag.MetaData{
+				"Slack": {
+					"Message": options,
+				},
+			})
 		return err
 	}
 
