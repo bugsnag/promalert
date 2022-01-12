@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"text/template"
 	"time"
@@ -81,14 +82,14 @@ func ComposeMessageBody(alert Alert, messageTemplate, headerTemplate string, ima
 	}
 	statusBlock := slack.NewTextBlockObject(
 		"mrkdwn",
-		headerTpl.String(),
+		truncateText(headerTpl.String(), MAX_TEXT_LENGTH),
 		false,
 		false,
 	)
 
 	textBlockObj := slack.NewTextBlockObject(
 		"mrkdwn",
-		tpl.String(),
+		truncateText(tpl.String(), MAX_TEXT_LENGTH),
 		false,
 		false,
 	)
@@ -96,8 +97,9 @@ func ComposeMessageBody(alert Alert, messageTemplate, headerTemplate string, ima
 	blocks = append(blocks, slack.NewSectionBlock(statusBlock, nil, nil))
 	blocks = append(blocks, slack.NewSectionBlock(textBlockObj, nil, nil))
 	for _, image := range images {
-		textBlock := slack.NewTextBlockObject("plain_text", image.Title, false, false)
-		blocks = append(blocks, slack.NewImageBlock(image.Url, "metric graph "+image.Title, "", textBlock))
+		textBlock := slack.NewTextBlockObject("plain_text", truncateText(image.Title, MAX_TEXT_LENGTH), false, false)
+		imageAltText := "metric graph " + image.Title
+		blocks = append(blocks, slack.NewImageBlock(image.Url, truncateText(imageAltText, MAX_TEXT_LENGTH), "", textBlock))
 	}
 
 	return blocks, nil
@@ -130,4 +132,13 @@ func ParseTemplate(messageTemplate string, alert Alert) (bytes.Buffer, error) {
 	}
 
 	return tpl, err
+}
+
+func truncateText(text string, maxLength int) string {
+	truncateText := "[TRUNCATED]"
+	if len(text) > maxLength {
+		truncatedLength := MAX_TEXT_LENGTH - len(truncateText)
+		return fmt.Sprintf("%s%s", text[:truncatedLength], truncateText)
+	}
+	return text
 }
