@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/cast"
 )
 
+const MAX_TEXT_LENGTH = 2000
+
 func SlackSendAlertMessage(token, channel string, messageOptions ...slack.MsgOption) (string, string, error) {
 	api := slack.New(token)
 	respChannel, respTimestamp, err := api.PostMessage(channel, messageOptions...)
