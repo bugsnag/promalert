@@ -61,7 +61,7 @@ func (alert Alert) GeneratePictures(generatorQuery url.Values) ([]SlackImage, er
 
 		images = append(images, SlackImage{
 			Url:   publicURL,
-			Title: expr.TruncatedString(),
+			Title: expr.String(),
 		})
 	}
 
