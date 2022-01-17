@@ -71,7 +71,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 		resolution,
 	)
 	if err != nil {
-		_ = bugsnag.Notify(err, nil,
+		_ = bugsnag.Notify(errr
 			bugsnag.MetaData{
 				"Expression": {
 					"PrometheusUrl":      prometheusUrl,
@@ -120,7 +120,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 	clog.Infof("Creating plot: %s", alert.Annotations["summary"])
 	plottedMetric, err := PlotMetric(selectedMetrics, expr.Level, expr.Operator)
 	if err != nil {
-		_ = bugsnag.Notify(err, nil,
+		_ = bugsnag.Notify(err,
 			bugsnag.MetaData{
 				"Expression": {
 					"PrometheusUrl":      prometheusUrl,
