@@ -71,7 +71,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 		resolution,
 	)
 	if err != nil {
-		_ = bugsnag.Notify(errr
+		_ = bugsnag.Notify(err,
 			bugsnag.MetaData{
 				"Expression": {
 					"PrometheusUrl":      prometheusUrl,
