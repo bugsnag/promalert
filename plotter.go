@@ -80,6 +80,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 					"QueryTime":          queryTime.String(),
 				},
 				"Alert": {
+					"Name":         alert.Labels["name"],
 					"GeneratorURL": alert.GeneratorURL,
 					"Channel":      alert.Channel,
 					"MessageTS":    alert.MessageTS,
@@ -128,6 +129,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 					"QueryTime":          queryTime.String(),
 				},
 				"Alert": {
+					"Name":         alert.Labels["name"],
 					"GeneratorURL": alert.GeneratorURL,
 					"Channel":      alert.Channel,
 					"MessageTS":    alert.MessageTS,
