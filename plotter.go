@@ -18,6 +18,7 @@ import (
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 
+	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/bugsnag/microkit/clog"
 	"github.com/spf13/viper"
 )
@@ -70,6 +71,21 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 		resolution,
 	)
 	if err != nil {
+		_ = bugsnag.Notify(err,
+			bugsnag.MetaData{
+				"Expression": {
+					"PrometheusUrl":      prometheusUrl,
+					"ExpressionFormula":  expr.Formula,
+					"ExpressionOperator": expr.Operator,
+					"QueryTime":          queryTime.String(),
+				},
+				"Alert": {
+					"Name":         alert.Labels["name"],
+					"GeneratorURL": alert.GeneratorURL,
+					"Channel":      alert.Channel,
+					"MessageTS":    alert.MessageTS,
+				},
+			})
 		return nil, err
 	}
 
@@ -104,6 +120,21 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 	clog.Infof("Creating plot: %s", alert.Annotations["summary"])
 	plottedMetric, err := PlotMetric(selectedMetrics, expr.Level, expr.Operator)
 	if err != nil {
+		_ = bugsnag.Notify(err,
+			bugsnag.MetaData{
+				"Expression": {
+					"PrometheusUrl":      prometheusUrl,
+					"ExpressionFormula":  expr.Formula,
+					"ExpressionOperator": expr.Operator,
+					"QueryTime":          queryTime.String(),
+				},
+				"Alert": {
+					"Name":         alert.Labels["name"],
+					"GeneratorURL": alert.GeneratorURL,
+					"Channel":      alert.Channel,
+					"MessageTS":    alert.MessageTS,
+				},
+			})
 		return nil, err
 	}
 
