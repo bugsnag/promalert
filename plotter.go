@@ -192,7 +192,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 			if fs == "NaN" {
 				_, err := drawLine(data, colors, s, paletteSize, p, metrics, sample)
 				if err != nil {
-					return nil, err
+					return nil, errors.Wrapf(err, "failed to draw line for value: %s", v.Value.String())
 				}
 
 				data = make(plotter.XYs, 0)
@@ -223,7 +223,14 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 
 	poly, err := plotter.NewPolygon(polygonPoints)
 	if err != nil {
-		return nil, err
+		polyErr := errors.Wrap(err, "failed to create polygon")
+		bugsnag.Notify(polyErr, bugsnag.MetaData{
+			"Graph": {
+				"PolygonPoints": polygonPoints,
+				"Metrics": metrics,
+			},
+		})
+		return nil, polyErr
 	}
 	poly.Color = color.NRGBA{R: 255, A: 40}
 	poly.LineStyle.Color = color.NRGBA{R: 0, A: 0}
