@@ -89,7 +89,16 @@ func (alert Alert) PostMessage(generatorQuery url.Values) error {
 		clog.Info("Composing full message")
 		images, err := alert.GeneratePictures(generatorQuery)
 		if err != nil {
-			return err
+			_ = bugsnag.Notify(err,
+				bugsnag.MetaData{
+					"Alert": {
+						"GeneratorQuery": generatorQuery,
+						"Name":           alert.Labels["alertname"],
+						"GeneratorURL":   alert.GeneratorURL,
+						"Channel":        alert.Channel,
+						"MessageTS":      alert.MessageTS,
+					},
+				})
 		}
 
 		messageBlocks, err := ComposeMessageBody(
@@ -115,7 +124,16 @@ func (alert Alert) PostMessage(generatorQuery url.Values) error {
 
 		images, err := alert.GeneratePictures(generatorQuery)
 		if err != nil {
-			return err
+			_ = bugsnag.Notify(err,
+				bugsnag.MetaData{
+					"Alert": {
+						"GeneratorQuery": generatorQuery,
+						"Name":           alert.Labels["alertname"],
+						"GeneratorURL":   alert.GeneratorURL,
+						"Channel":        alert.Channel,
+						"MessageTS":      alert.MessageTS,
+					},
+				})
 		}
 
 		messageBlocks, err := ComposeResolveUpdateBody(
