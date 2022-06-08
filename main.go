@@ -17,7 +17,6 @@ func main() {
 	err := viper.ReadInConfig()
 	if err != nil {
 		err = errors.Wrap(err, "Fatal error config file")
-		_ = bugsnag.Notify(err)
 		panic(err)
 	}
 	viper.AutomaticEnv()
