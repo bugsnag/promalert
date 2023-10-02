@@ -3,6 +3,8 @@ package main
 import (
 	"net/http/httputil"
 	"net/url"
+	"slices"
+	"strings"
 
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/bugsnag/microkit/clog"
@@ -36,9 +38,14 @@ func webhook(c *gin.Context) {
 
 		for _, alert := range m.Alerts {
 			alertName := alert.Labels["alertname"]
-			// shorten all alert annotation URLs
+			// shorten all alert annotation URLs whose key names haven't specifically been excluded
 			cli := NewLinksClient()
+			excluded_annotations := strings.Split(viper.GetString("excluded_annotations_from_link_shortening"), ",")
 			for k, txt := range alert.Annotations {
+				if slices.Contains(excluded_annotations, k) {
+					alert.Annotations[k] = txt
+					continue
+				}
 				err, n := cli.ReplaceLinks(ctx, txt)
 				if err != nil {
 					err = errors.Wrap(err, "Error whilst shortening links")
