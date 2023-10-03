@@ -111,6 +111,11 @@ func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, stri
 	r := xurls.Strict()
 	raw := r.FindAllString(target, -1)
 	for _, r := range raw {
+		// Look for the presence of a backtick, this will indicate the string is for display and shouldn't be shortened
+		i := strings.Index(target, r)
+		if i > 0 && target[i-1] == '`' {
+			continue
+		}
 		url, err := cli.Submit(ctx, r)
 		if err != nil {
 			return err, r
