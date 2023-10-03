@@ -22,6 +22,7 @@ func main() {
 	viper.AutomaticEnv()
 	viper.SetDefault("bugsnag_release_stage", "development")
 	viper.SetDefault("bugsnag_api_key", "")
+	viper.SetDefault("font_filename", "ipam.tff")
 	viper.SetEnvPrefix("promalert")
 
 	bugsnag.Configure(bugsnag.Configuration{
@@ -40,6 +41,12 @@ func main() {
 
 	r.GET("/healthz", healthz)
 	r.POST("/webhook", webhook)
+
+	err = LoadFont()
+	if err != nil {
+		_ = bugsnag.Notify(err)
+		panic(err)
+	}
 
 	err = r.Run(":" + viper.GetString("http_port"))
 	if err != nil {
