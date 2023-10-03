@@ -109,20 +109,20 @@ func (cli *Client) Submit(ctx context.Context, target string) (*LinkResponse, er
 
 func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, string) {
 	r := xurls.Strict()
-	raw := r.FindAllString(target, -1)
-	for _, r := range raw {
+	matches := r.FindAllString(target, -1)
+	for _, match := range matches {
 		// Look for the presence of a backtick before the found URL
 		// this will indicate the string is for display and shouldn't be shortened
-		i := strings.Index(target, r)
+		i := strings.Index(target, match)
 		if i > 0 && target[i-1] == '`' {
 			continue
 		}
-		url, err := cli.Submit(ctx, r)
+		url, err := cli.Submit(ctx, match)
 		if err != nil {
-			return err, r
+			return err, match
 		}
 		clog.Infof("Shortened link: %s, to: %s", url.Target, url.Link)
-		target = strings.Replace(target, r, url.Link, 1)
+		target = strings.Replace(target, match, url.Link, 1)
 	}
 	return nil, target
 }
