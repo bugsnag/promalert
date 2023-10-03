@@ -41,6 +41,12 @@ func main() {
 	r.GET("/healthz", healthz)
 	r.POST("/webhook", webhook)
 
+	err = LoadFont()
+	if err != nil {
+		_ = bugsnag.Notify(err)
+		panic(err)
+	}
+
 	err = r.Run(":" + viper.GetString("http_port"))
 	if err != nil {
 		err = errors.Wrap(err, "Can't start web server")

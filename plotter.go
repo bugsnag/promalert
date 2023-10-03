@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"image/color"
 	"io"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/influxdata/promql/v2"
+	"github.com/pkg/errors"
 
 	"github.com/prometheus/common/model"
 	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/font"
 	"gonum.org/v1/plot/palette/brewer"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/vg"
@@ -21,6 +23,7 @@ import (
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/bugsnag/microkit/clog"
 	"github.com/spf13/viper"
+	"golang.org/x/image/font/opentype"
 )
 
 // Only show important part of metric name
@@ -141,37 +144,50 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 	return plottedMetric, nil
 }
 
+func LoadFont() error {
+	ttf, err := os.ReadFile("ipam.tff")
+	if err != nil {
+		return errors.Wrap(err, "failed to load font")
+	}
+
+	fontTTF, err := opentype.Parse(ttf)
+	if err != nil {
+		return err
+	}
+	mincho := font.Font{Typeface: "Mincho"}
+	font.DefaultCache.Add([]font.Face{
+		{
+			Font: mincho,
+			Face: fontTTF,
+		},
+	})
+	if !font.DefaultCache.Has(mincho) {
+		return errors.Wrap(err, fmt.Sprintf("font not in cache %q", mincho.Typeface))
+	}
+	return nil
+}
+
 func PlotMetric(metrics model.Matrix, level float64, direction string) (io.WriterTo, error) {
 	viper.SetDefault("graph_scale", 1.0)
-	var graphScale = viper.GetFloat64("graph_scale")
 
-	p, err := plot.New()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new plot")
-	}
+	graphScale := viper.GetFloat64("graph_scale")
+	p := plot.New()
 
-	textFont, err := vg.MakeFont("Helvetica", vg.Length(2.5*graphScale)*vg.Millimeter)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load font")
-	}
-
-	evalTextFont, err := vg.MakeFont("Helvetica", vg.Length(3*graphScale)*vg.Millimeter)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load font")
-	}
+	chartFace := font.DefaultCache.Lookup(font.Font{Typeface: "Mincho"}, vg.Length(2.5*graphScale)*vg.Millimeter)
+	evalFace := font.DefaultCache.Lookup(font.Font{Typeface: "Mincho"}, vg.Length(3*graphScale)*vg.Millimeter)
 
 	evalTextStyle := draw.TextStyle{
 		Color:  color.NRGBA{A: 150},
-		Font:   evalTextFont,
+		Font:   evalFace.Font,
 		XAlign: draw.XRight,
 		YAlign: draw.YBottom,
 	}
 
 	//p.Y.Min = 0
 	p.X.Tick.Marker = plot.TimeTicks{Format: "15:04:05"}
-	p.X.Tick.Label.Font = textFont
-	p.Y.Tick.Label.Font = textFont
-	p.Legend.Font = textFont
+	p.X.Tick.Label.Font = chartFace.Font
+	p.Y.Tick.Label.Font = chartFace.Font
+	p.Legend.TextStyle.Font = chartFace.Font
 	p.Legend.Top = true
 	p.Legend.YOffs = vg.Length(15*graphScale) * vg.Millimeter
 
@@ -227,7 +243,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 		bugsnag.Notify(polyErr, bugsnag.MetaData{
 			"Graph": {
 				"PolygonPoints": polygonPoints,
-				"Metrics": metrics,
+				"Metrics":       metrics,
 			},
 		})
 		return nil, polyErr
