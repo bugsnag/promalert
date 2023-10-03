@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 (2022-10-05)
+
+- Upgrade to go 1.18.7
+
+## 1.1.0 (2022-09-20)
+
+- Upgrade to go 1.18.6
+
 ## 1.0.0 (2021-03-20)
 
 - Official library release (v1)
