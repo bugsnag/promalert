@@ -145,7 +145,7 @@ func Plot(expr PlotExpr, queryTime time.Time, duration, resolution time.Duration
 }
 
 func LoadFont() error {
-	ttf, err := os.ReadFile("ipam.tff")
+	ttf, err := os.ReadFile(viper.GetString("font_filename"))
 	if err != nil {
 		return errors.Wrap(err, "failed to load font")
 	}

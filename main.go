@@ -22,6 +22,7 @@ func main() {
 	viper.AutomaticEnv()
 	viper.SetDefault("bugsnag_release_stage", "development")
 	viper.SetDefault("bugsnag_api_key", "")
+	viper.SetDefault("font_filename", "ipam.tff")
 	viper.SetEnvPrefix("promalert")
 
 	bugsnag.Configure(bugsnag.Configuration{
