@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/prometheus/prometheus/promql"
+	"github.com/influxdata/promql/v2"
 
 	"github.com/prometheus/common/model"
 	"gonum.org/v1/plot"
