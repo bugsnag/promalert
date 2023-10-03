@@ -13,8 +13,8 @@ test: ## Run unit tests
 
 image: ## Build image given VER
 	@echo "---> [Executing docker build]"
-	@docker build . -t $(IMAGE)
-	@docker push $(IMAGE)
+	@docker buildx create --use
+	@docker buildx build --platform linux/amd64,linux/arm64 --push -t $(IMAGE) .
 	@echo $(IMAGE)
 
 build: test image ## Creates a unit tested image
