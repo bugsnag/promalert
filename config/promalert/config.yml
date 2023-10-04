@@ -1,0 +1,21 @@
+http_port: 8081
+metric_resolution: 100
+header_template: |
+  *{{ .Labels.alertname }}*
+  *Status:* {{if eq .Status "firing" }}:fire: *FIRING*{{else}}:white_check_mark: *RESOLVED*{{ end }}
+
+footer_template: |
+  {{if eq .Status "firing" }}:fire: Refired{{else}}:white_check_mark: Resolved{{ end }} {{ dateFormat "15:04:05" now }}
+
+message_template: |
+  :chart_with_upwards_trend: *<{{ .GeneratorURL }}|Graph>*
+  {{- if .Annotations.runbook }} :notebook: *<{{ .Annotations.runbook }}|Runbook>*{{ end }}
+  {{- if .Annotations.alertman_url }} :bell: *<{{ .Annotations.alertman_url }}|Alerts>*{{ end }}
+
+  *Alert:* {{ if .Annotations.title }}{{ .Annotations.title }}{{ end }}{{ if .Annotations.summary }}{{ .Annotations.summary }}{{ end }}
+  {{ if .Labels.severity }}*Severity:*  `{{ .Labels.severity }}`{{ end }}
+  {{ if .Annotations.message }}*Message:*  {{ .Annotations.message }}{{ end }}
+  {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
+  *Details:*
+    {{ range $key, $value := .Labels }} • {{ $key }}: {{ $value }}
+    {{ end }}

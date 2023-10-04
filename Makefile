@@ -20,5 +20,14 @@ image: ## Build image given VER
 build: test image ## Creates a unit tested image
 	@echo "---> [All done!]"
 
+.PHONY: up ## Bring up the dev docker stack
+up:
+	@docker-compose -f docker-compose.dev.yml up -d --remove-orphans --quiet-pull --build
+	@docker-compose -f docker-compose.dev.yml logs -f
+	
+.PHONY: down ## Bring down the dev docker stack
+down:
+	@docker-compose -f docker-compose.dev.yml down
+
 help: ## Print help for all functions of Makefile
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)

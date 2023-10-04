@@ -1,0 +1,19 @@
+groups:
+- name: test_alerts
+  rules:
+  - alert: service_down
+    expr: up == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+  - alert: memory_in_use
+    expr: node_memory_MemTotal_bytes - node_memory_MemFree_bytes > 4 * (1024 * 1024 * 1024)
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} is using more than 5Gi memory"
+      description: "{{ $labels.instance }} has been using more memory than allowed for more than 2 minutes."
