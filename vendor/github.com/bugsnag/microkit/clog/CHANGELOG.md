@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.5.0 (2024-05-13)
+
+- Update go to 1.22.3
+
+## 1.4.0 (2023-12-08)
+
+- Update go to 1.21.5
+- Update golangci-lint to 1.54.1
+
+## 1.3.0 (2023-10-04)
+
+- Maintain order of added context when logging
+
+## 1.2.0 (2023-04-20)
+
+- Upgrade go to 1.20.3
+- Update golangci-lint to 1.52.2
+
+## 1.1.1 (2022-10-05)
+
+- Upgrade to go 1.18.7
+
+## 1.1.0 (2022-09-20)
+
+- Upgrade to go 1.18.6
+
 ## 1.0.0 (2021-03-20)
 
 - Official library release (v1)

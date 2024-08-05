@@ -1,0 +1,42 @@
+agents: &agents
+  queue: elastic-new
+env:
+  VERSION: ${BUILDKITE_TAG:1}
+steps:
+  - name: ':docker: Build CI Image'
+    agents: *agents
+    plugins:
+      docker-compose#v3.2.0:
+        build: ci
+        build-alias:
+          - lint
+        image-repository: gcr.io/bugsnag-155907/promalert
+        image-name: ci-${BUILDKITE_COMMIT:0:7}
+        push-retries: 5
+
+  - wait
+
+  - name: ':hammer_and_wrench: Run Tests'
+    agents: *agents
+    plugins:
+      docker-compose#v3.9.0:
+        run: test
+
+  - name: ':mag: Lint Code'
+    agents: *agents
+    plugins:
+      docker-compose#v3.9.0:
+        run: lint
+
+  - wait
+
+  - name: ':docker: Release Image'
+    if: build.tag != null
+    agents: *agents
+
+    plugins:
+      docker-compose#v3.9.0:
+        build: production
+        image-repository: gcr.io/bugsnag-155907/promalert
+        image-name: ${BUILDKITE_TAG}
+        push-retries: 5

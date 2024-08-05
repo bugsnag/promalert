@@ -1,5 +1,67 @@
 # Changelog
 
+## 2.4.0 (2024-04-15)
+
+### Enhancements
+
+* Sanitize for metadata should also handler json and []byte
+  [#226](https://github.com/bugsnag/bugsnag-go/pull/226)
+  [Chris Duncan](https://github.com/veqryn)
+
+## 2.3.1 (2024-03-18)
+
+### Bug fixes
+
+* Handle empty pointers to complex structs in metadata.Add
+  [#221](https://github.com/bugsnag/bugsnag-go/pull/221)
+
+## 2.3.0 (2024-03-05)
+
+### Bug fixes
+
+* Start showing inlined functions in stack trace
+  [#208](https://github.com/bugsnag/bugsnag-go/pull/208)
+
+* Handle complex structs in metadata
+  [#215](https://github.com/bugsnag/bugsnag-go/pull/215)
+  [Chris Duncan](https://github.com/veqryn)
+
+* Stop trimming everything before "main.go" on main packages
+  [#217](https://github.com/bugsnag/bugsnag-go/pull/217)
+  [Chris Duncan](https://github.com/veqryn)
+
+## 2.2.1 (2022-02-21)
+
+### Bug fixes
+
+* Fix middleware panic on nil *http.Request
+  [#212](https://github.com/bugsnag/bugsnag-go/pull/212)
+
+## 2.2.0 (2022-10-12)
+
+### Enhancements
+
+* Support pkg/errors `Unwrap()` on `errors.Error` objects
+  [#194](https://github.com/bugsnag/bugsnag-go/pull/194)
+  [Jayce Pulsipher](https://github.com/jaycetde)
+
+* Document double star glob patterns are available for `ProjectPackages`
+  subpackage names.
+  [#184](https://github.com/bugsnag/bugsnag-go/pull/184)
+  [Genta Kamitani](https://github.com/genkami)
+
+### Bug fixes
+
+* Replace the gofrs/uuid dependency to maintain support for older versions of Go
+  [#196](https://github.com/bugsnag/bugsnag-go/pull/196)
+
+## 1.9.1 (2022-10-12)
+
+### Bug fixes
+
+* Replace the gofrs/uuid dependency to maintain support for older versions of Go
+  [#196](https://github.com/bugsnag/bugsnag-go/pull/196)
+
 ## 2.1.2 (2021-08-24)
 
 ### Enhancements

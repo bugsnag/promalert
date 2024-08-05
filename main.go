@@ -6,7 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"gonum.org/v1/plot/font"
+	"gonum.org/v1/plot/font/liberation"
 )
+
+var fontCache *font.Cache
 
 func main() {
 	viper.AddConfigPath(".")
@@ -30,6 +34,8 @@ func main() {
 		ReleaseStage:    viper.GetString("bugsnag_release_stage"),
 		Synchronous:     true,
 	})
+
+	fontCache = font.NewCache(liberation.Collection())
 
 	g := gin.Default()
 	g.Use(bugsnaggin.AutoNotify())

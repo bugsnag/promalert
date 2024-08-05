@@ -1,9 +1,12 @@
 package bugsnag
 
 import (
+	"encoding"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // MetaData is added to the Bugsnag dashboard in tabs. Each tab is
@@ -50,7 +53,7 @@ func (meta MetaData) AddStruct(tab string, obj interface{}) {
 		meta[tab] = content
 	} else {
 		// Wasn't a struct
-		meta.Add("Extra data", tab, obj)
+		meta.Add("Extra data", tab, val)
 	}
 
 }
@@ -65,7 +68,7 @@ func (meta MetaData) sanitize(filters []string) interface{} {
 
 }
 
-// The sanitizer is used to remove filtered params and recursion from meta-data.
+// sanitizer is used to remove filtered params and recursion from meta-data.
 type sanitizer struct {
 	Filters []string
 	Seen    []interface{}
@@ -82,12 +85,44 @@ func (s sanitizer) Sanitize(data interface{}) interface{} {
 	// Sanitizers are passed by value, so we can modify s and it only affects
 	// s.Seen for nested calls.
 	s.Seen = append(s.Seen, data)
-
 	t := reflect.TypeOf(data)
 	v := reflect.ValueOf(data)
 
 	if t == nil {
 		return "<nil>"
+	}
+
+	// Handle nil pointers and interfaces specifically
+	if t.Kind() == reflect.Interface || t.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return "<nil>"
+		}
+	}
+
+	// Handle certain well known interfaces and types, in preferred order
+	switch dataT := data.(type) {
+	case error:
+		return dataT.Error()
+
+	case time.Time:
+		return dataT.Format(time.RFC3339Nano)
+
+	case fmt.Stringer:
+		// This also covers time.Duration
+		return dataT.String()
+
+	case encoding.TextMarshaler:
+		if b, err := dataT.MarshalText(); err == nil {
+			return string(b)
+		}
+
+	case json.Marshaler:
+		if b, err := dataT.MarshalJSON(); err == nil {
+			return string(b)
+		}
+
+	case []byte:
+		return string(dataT)
 	}
 
 	switch t.Kind() {
@@ -101,9 +136,6 @@ func (s sanitizer) Sanitize(data interface{}) interface{} {
 		return data
 
 	case reflect.Interface, reflect.Ptr:
-		if v.IsNil() {
-			return "<nil>"
-		}
 		return s.Sanitize(v.Elem().Interface())
 
 	case reflect.Array, reflect.Slice:
@@ -123,9 +155,7 @@ func (s sanitizer) Sanitize(data interface{}) interface{} {
 		// case t.Chan, t.Func, reflect.Complex64, reflect.Complex128, reflect.UnsafePointer:
 	default:
 		return "[" + t.String() + "]"
-
 	}
-
 }
 
 func (s sanitizer) sanitizeMap(v reflect.Value) interface{} {
@@ -175,7 +205,6 @@ func (s sanitizer) sanitizeStruct(v reflect.Value, t reflect.Type) interface{} {
 			} else {
 				ret[name] = sanitized
 			}
-
 		}
 	}
 

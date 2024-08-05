@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/prometheus/prometheus/promql"
+	"github.com/prometheus/prometheus/promql/parser"
 
 	"github.com/prometheus/common/model"
 	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/font"
 	"gonum.org/v1/plot/palette/brewer"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/vg"
@@ -27,22 +28,22 @@ import (
 var labelText = regexp.MustCompile("{(.*)}")
 
 func GetPlotExpr(alertFormula string) []PlotExpr {
-	expr, _ := promql.ParseExpr(alertFormula)
-	if parenExpr, ok := expr.(*promql.ParenExpr); ok {
+	expr, _ := parser.ParseExpr(alertFormula)
+	if parenExpr, ok := expr.(*parser.ParenExpr); ok {
 		expr = parenExpr.Expr
 		clog.Infof("Removing redundant brackets: %v", expr.String())
 	}
 
-	if binaryExpr, ok := expr.(*promql.BinaryExpr); ok {
+	if binaryExpr, ok := expr.(*parser.BinaryExpr); ok {
 		var alertOperator string
 
 		switch binaryExpr.Op {
-		case promql.ItemLAND:
+		case parser.LAND:
 			clog.Warn("Logical condition, drawing sides separately")
 			return append(GetPlotExpr(binaryExpr.LHS.String()), GetPlotExpr(binaryExpr.RHS.String())...)
-		case promql.ItemLTE, promql.ItemLSS:
+		case parser.LTE, parser.LSS:
 			alertOperator = "<"
-		case promql.ItemGTE, promql.ItemGTR:
+		case parser.GTE, parser.GTR:
 			alertOperator = ">"
 		default:
 			clog.Infof("Unexpected operator: %v", binaryExpr.Op.String())
@@ -145,33 +146,23 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	viper.SetDefault("graph_scale", 1.0)
 	var graphScale = viper.GetFloat64("graph_scale")
 
-	p, err := plot.New()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new plot")
-	}
+	p := plot.New()
 
-	textFont, err := vg.MakeFont("Helvetica", vg.Length(2.5*graphScale)*vg.Millimeter)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load font")
-	}
-
-	evalTextFont, err := vg.MakeFont("Helvetica", vg.Length(3*graphScale)*vg.Millimeter)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load font")
-	}
+	textFontDef := font.Font{Typeface: "Liberation", Variant: "Mono"}
+	textFont := fontCache.Lookup(textFontDef, 2.5*vg.Millimeter*vg.Length(graphScale))
+	evalTextFont := fontCache.Lookup(textFontDef, vg.Length(3*graphScale)*vg.Millimeter)
 
 	evalTextStyle := draw.TextStyle{
 		Color:  color.NRGBA{A: 150},
-		Font:   evalTextFont,
+		Font:   evalTextFont.Font,
 		XAlign: draw.XRight,
 		YAlign: draw.YBottom,
 	}
 
 	//p.Y.Min = 0
 	p.X.Tick.Marker = plot.TimeTicks{Format: "15:04:05"}
-	p.X.Tick.Label.Font = textFont
-	p.Y.Tick.Label.Font = textFont
-	p.Legend.Font = textFont
+	p.X.Tick.Label.Font = textFont.Font
+	p.Y.Tick.Label.Font = textFont.Font
 	p.Legend.Top = true
 	p.Legend.YOffs = vg.Length(15*graphScale) * vg.Millimeter
 
@@ -227,7 +218,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 		bugsnag.Notify(polyErr, bugsnag.MetaData{
 			"Graph": {
 				"PolygonPoints": polygonPoints,
-				"Metrics": metrics,
+				"Metrics":       metrics,
 			},
 		})
 		return nil, polyErr
