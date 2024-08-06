@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -22,8 +21,11 @@ import (
 func UploadFile(bucket, region string, plot io.WriterTo) (string, error) {
 	s := session.Must(session.NewSession(&aws.Config{Region: aws.String(region)}))
 	_, err := s.Config.Credentials.Get()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get AWS credentials")
+	}
 
-	f, err := ioutil.TempFile("", "promplot-*.png")
+	f, err := os.CreateTemp("", "promplot-*.png")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create tmp file")
 	}

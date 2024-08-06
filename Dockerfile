@@ -27,13 +27,11 @@ RUN go build -o promalert
 FROM golang:1.22.5 as ci
 
 # Install golangci
-RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.22.5
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.59.1
 
 WORKDIR /app
 
 COPY --from=builder /build .
-
-RUN go mod download
 
 ################################################################################
 # FINAL IMAGE

@@ -215,6 +215,7 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	poly, err := plotter.NewPolygon(polygonPoints)
 	if err != nil {
 		polyErr := errors.Wrap(err, "failed to create polygon")
+		//nolint:errcheck // intentionally ignoring the error from Bugsnag notification
 		bugsnag.Notify(polyErr, bugsnag.MetaData{
 			"Graph": {
 				"PolygonPoints": polygonPoints,

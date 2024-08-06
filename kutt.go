@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -54,7 +53,7 @@ func NewLinksClient() *Client {
 }
 
 func (cli *Client) error(statusCode int, body io.Reader) error {
-	buf, err := ioutil.ReadAll(body)
+	buf, err := io.ReadAll(body)
 	if err != nil || len(buf) == 0 {
 		return errors.Errorf("Request failed with status code %d", statusCode)
 	}
