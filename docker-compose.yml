@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.9'
 
 services:
   app:
@@ -21,3 +21,10 @@ services:
       context: .
       target: ci
     command: "golangci-lint run"
+
+  production:
+    build:
+      args:
+        - VERSION
+      context: .
+      target: production

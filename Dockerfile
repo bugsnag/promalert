@@ -37,7 +37,7 @@ COPY --from=builder /build .
 # FINAL IMAGE
 ################################################################################
 
-FROM alpine:3.20
+FROM alpine:3.20 as production
 
 LABEL com.bugsnag.app="promalert"
 
