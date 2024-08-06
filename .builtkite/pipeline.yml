@@ -6,7 +6,7 @@ steps:
   - name: ':docker: Build CI Image'
     agents: *agents
     plugins:
-      docker-compose#v3.2.0:
+      docker-compose#v3.9.0:
         build: ci
         build-alias:
           - lint
