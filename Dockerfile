@@ -2,7 +2,7 @@
 # BUILDER/DEVELOPMENT IMAGE
 ################################################################################
 
-FROM golang:1.21.1-alpine as builder
+FROM golang:1.22.5-alpine as builder
 
 # Install Git
 RUN apk add --no-cache git libc6-compat make
@@ -24,10 +24,10 @@ RUN go build -o promalert
 # LINT IMAGE
 ################################################################################
 
-FROM golang:1.21.1 as ci
+FROM golang:1.22.5 as ci
 
 # Install golangci
-RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.21.0
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.22.5
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ RUN go mod download
 # FINAL IMAGE
 ################################################################################
 
-FROM alpine:3.11
+FROM alpine:3.20
 
 LABEL com.bugsnag.app="promalert"
 
