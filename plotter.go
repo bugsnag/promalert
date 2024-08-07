@@ -146,23 +146,27 @@ func PlotMetric(metrics model.Matrix, level float64, direction string) (io.Write
 	viper.SetDefault("graph_scale", 1.0)
 	var graphScale = viper.GetFloat64("graph_scale")
 
-	p := plot.New()
-
 	textFontDef := font.Font{Typeface: "Liberation", Variant: "Mono"}
-	textFont := fontCache.Lookup(textFontDef, 2.5*vg.Millimeter*vg.Length(graphScale))
-	evalTextFont := fontCache.Lookup(textFontDef, vg.Length(3*graphScale)*vg.Millimeter)
-
+	textFont := font.DefaultCache.Lookup(textFontDef, vg.Length(2.5*graphScale)*vg.Millimeter)
+	if textFont.Name() == "" {
+		clog.Error("Failed to lookup text font")
+		return nil, errors.New("failed to lookup text font")
+	}
+	evalTextFont := font.DefaultCache.Lookup(textFontDef, vg.Length(3*graphScale)*vg.Millimeter)
 	evalTextStyle := draw.TextStyle{
-		Color:  color.NRGBA{A: 150},
-		Font:   evalTextFont.Font,
-		XAlign: draw.XRight,
-		YAlign: draw.YBottom,
+		Color:   color.NRGBA{A: 150},
+		Font:    evalTextFont.Font,
+		XAlign:  draw.XRight,
+		YAlign:  draw.YBottom,
+		Handler: plot.DefaultTextHandler,
 	}
 
+	p := plot.New()
 	//p.Y.Min = 0
 	p.X.Tick.Marker = plot.TimeTicks{Format: "15:04:05"}
 	p.X.Tick.Label.Font = textFont.Font
 	p.Y.Tick.Label.Font = textFont.Font
+	p.Legend.TextStyle.Font = textFont.Font
 	p.Legend.Top = true
 	p.Legend.YOffs = vg.Length(15*graphScale) * vg.Millimeter
 

@@ -10,8 +10,6 @@ import (
 	"gonum.org/v1/plot/font/liberation"
 )
 
-var fontCache *font.Cache
-
 func main() {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/app")
@@ -35,7 +33,8 @@ func main() {
 		Synchronous:     true,
 	})
 
-	fontCache = font.NewCache(liberation.Collection())
+	// load Liberation font into cache
+	font.DefaultCache.Add(liberation.Collection())
 
 	g := gin.Default()
 	g.Use(bugsnaggin.AutoNotify())
