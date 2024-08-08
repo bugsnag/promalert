@@ -112,7 +112,7 @@ func (alert Alert) PostMessage(generatorQuery url.Values) error {
 		}
 
 		alert.MessageBody = messageBlocks
-		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, messageBlocks...)
+		attachment.Blocks.BlockSet = append(attachment.Blocks.BlockSet, alert.MessageBody...)
 
 		if alert.MessageTS != "" {
 			options = append(options, slack.MsgOptionBroadcast())

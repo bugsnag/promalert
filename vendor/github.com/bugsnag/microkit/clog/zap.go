@@ -40,29 +40,29 @@ func newZapLogger(colorOn bool) *zapLogger {
 }
 
 // convertToZapFields will convert fields stored in the context to zap compatible fields
-func convertToZapFields(f Fields) []interface{} {
-	fields := make([]interface{}, 0, len(f)*2)
-	for key, val := range f {
-		fields = append(fields, key, val)
+func convertToZapFields(data logData) []interface{} {
+	fields := make([]interface{}, 0, len(data.fields)*2)
+	for _, key := range data.keys {
+		fields = append(fields, key, data.fields[key])
 	}
 	return fields
 }
 
-// Infocf records a information log including log fields provided in the context using the logrus logger via a formatted string
+// Infocf records an information log including log fields provided in the context using the logrus logger via a formatted string
 func (z *zapLogger) Infocf(ctx context.Context, msg string, args ...interface{}) {
-	fields := convertToZapFields(FieldsFromContext(ctx))
+	fields := convertToZapFields(logDataFromContext(ctx))
 	z.logger.Infow(fmt.Sprintf(msg, args...), fields...)
 }
 
 // Warncf records a warning log including log fields provided in the context using the logrus logger via a formatted string
 func (z *zapLogger) Warncf(ctx context.Context, msg string, args ...interface{}) {
-	fields := convertToZapFields(FieldsFromContext(ctx))
+	fields := convertToZapFields(logDataFromContext(ctx))
 	z.logger.Warnw(fmt.Sprintf(msg, args...), fields...)
 }
 
 // Errorcf records a error log using the logrus logger
 func (z *zapLogger) Errorcf(ctx context.Context, msg string, args ...interface{}) {
-	fields := convertToZapFields(FieldsFromContext(ctx))
+	fields := convertToZapFields(logDataFromContext(ctx))
 	z.logger.Errorw(fmt.Sprintf(msg, args...), fields...)
 }
 

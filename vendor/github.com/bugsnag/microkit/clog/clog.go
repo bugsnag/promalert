@@ -25,27 +25,27 @@ func EnableColor() {
 	logger = newZapLogger(true)
 }
 
-// EnableColor initializes a new logger with color disabled (not thread safe)
+// DisableColor initializes a new logger with color disabled (not thread safe)
 func DisableColor() {
 	logger = newZapLogger(false)
 }
 
-// Info records a information log using the default logger
+// Info records an information log using the default logger
 func Info(msg string) {
 	logger.Infocf(context.Background(), msg)
 }
 
-// Infoc records a information log including log fields provided in the context using the default logger
+// Infoc records an information log including log fields provided in the context using the default logger
 func Infoc(ctx context.Context, msg string) {
 	logger.Infocf(ctx, msg)
 }
 
-// Infof records a information log using the default logger via a formatted string
+// Infof records an information log using the default logger via a formatted string
 func Infof(msg string, args ...interface{}) {
 	logger.Infocf(context.Background(), msg, args...)
 }
 
-// Infocf records a information log including log fields provided in the context using the default logger via a formatted string
+// Infocf records an information log including log fields provided in the context using the default logger via a formatted string
 func Infocf(ctx context.Context, msg string, args ...interface{}) {
 	logger.Infocf(ctx, msg, args...)
 }
@@ -70,22 +70,22 @@ func Warncf(ctx context.Context, msg string, args ...interface{}) {
 	logger.Warncf(ctx, msg, args...)
 }
 
-// Error records a error log using the default logger
+// Error records an error log using the default logger
 func Error(msg string) {
 	logger.Errorcf(context.Background(), msg)
 }
 
-// Errorc records a error log including log fields provided in the context using the default logger
+// Errorc records an error log including log fields provided in the context using the default logger
 func Errorc(ctx context.Context, msg string) {
 	logger.Errorcf(ctx, msg)
 }
 
-// Errorf records a error log using the default logger via a formatted string
+// Errorf records an error log using the default logger via a formatted string
 func Errorf(msg string, args ...interface{}) {
 	logger.Errorcf(context.Background(), msg, args...)
 }
 
-// Errorcf records a error log using the default logger
+// Errorcf records an error log using the default logger
 func Errorcf(ctx context.Context, msg string, args ...interface{}) {
 	logger.Errorcf(ctx, msg, args...)
 }
@@ -98,33 +98,56 @@ func Flush() {
 // Defines the logging key used to store values in the context that should be logged
 type logKey struct{}
 
+// Defines the data stored in the context
+type logData struct {
+	keys   []string
+	fields Fields
+}
+
 // Fields define the values to add to the logs for a specific log entry
 type Fields map[string]interface{}
 
 // WithField will create a context with the provided key, value pair appended to the fields stored in the context
 func WithField(ctx context.Context, key string, value interface{}) context.Context {
-	logFieldsRaw := ctx.Value(logKey{})
-	logFields, ok := logFieldsRaw.(Fields)
-
-	if logFields == nil || !ok {
-		// We don't recognized the fields in the current context, or it hasn't been set, create a new context with new fields
-		return context.WithValue(ctx, logKey{}, Fields{key: value})
+	data, ok := ctx.Value(logKey{}).(logData)
+	if !ok {
+		data = logData{
+			keys:   []string{},
+			fields: make(Fields),
+		}
 	}
 
-	// Otherwise, create a new fields entry for the new context based on the old one and the new key value pair
-	newFields := make(Fields)
-	for k, v := range logFields {
-		newFields[k] = v
+	// Create a new data entry for the new context based on the old one
+	// This is done so that each thread will have a unique copy of the map
+	newData := logData{
+		keys:   make([]string, len(data.keys)),
+		fields: make(Fields),
 	}
-	newFields[key] = value
-	return context.WithValue(ctx, logKey{}, newFields)
+	for k, v := range data.fields {
+		newData.fields[k] = v
+	}
+	copy(newData.keys, data.keys)
+
+	// Add the new entry to the map and keys list
+	_, exists := newData.fields[key]
+	if !exists {
+		newData.keys = append(newData.keys, key)
+	}
+	newData.fields[key] = value
+
+	return context.WithValue(ctx, logKey{}, newData)
 }
 
 // FieldsFromContext extracts the current fields stored in the context
 func FieldsFromContext(ctx context.Context) Fields {
+	return logDataFromContext(ctx).fields
+}
+
+// logDataFromContext extracts the log data from context
+func logDataFromContext(ctx context.Context) logData {
 	if ctx == nil {
-		return nil
+		return logData{}
 	}
-	val, _ := ctx.Value(logKey{}).(Fields)
+	val, _ := ctx.Value(logKey{}).(logData)
 	return val
 }
