@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 NAME=promalert
-VER=1.2.15
+VERSION=1.2.15
 GCR_HOST=gcr.io/bugsnag-155907
 AWS_PROFILE="insighthub-production"
 ECR_REGION=${ECR_REGION:-us-east-1}
@@ -17,7 +17,7 @@ test: ## Run unit tests
 	@echo "---> [Executing go tests]"
 	@go test . -race -timeout 30m -p 1
 
-image: ## Build and push image given VER
+image: ## Build and push image given VERSION
 	@echo "---> [Executing docker build]"
 	@docker buildx build --platform linux/amd64,linux/arm64 --push . -t $(GCR_IMAGE) -t $(ECR_IMAGE)
 	@echo "pushed to GCR: $(GCR_IMAGE)"
