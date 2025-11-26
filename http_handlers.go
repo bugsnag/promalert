@@ -39,20 +39,20 @@ func webhook(c *gin.Context) {
 			// shorten all alert annotation URLs
 			cli := NewLinksClient()
 			for k, txt := range alert.Annotations {
-				err, n := cli.ReplaceLinks(ctx, txt)
+				n, err := cli.ReplaceLinks(ctx, txt)
 				if err != nil {
-					err = errors.Wrap(err, "Error whilst shortening links")
-					_ = bugsnag.Notify(err, ctx,
+					e := errors.Wrap(err, "Error whilst shortening links")
+					_ = bugsnag.Notify(e, ctx,
 						bugsnag.MetaData{
 							"Alert": {
 								"Name": alertName,
 							},
 							"Kutt": {
-								"URL": n,
+								"URL":       n,
 								"URLLength": len(n),
 							},
 						})
-					clog.Error(err.Error())
+					clog.Error(e.Error())
 				}
 				alert.Annotations[k] = n
 			}
@@ -64,7 +64,7 @@ func webhook(c *gin.Context) {
 				_ = bugsnag.Notify(err, ctx,
 					bugsnag.MetaData{
 						"Alert": {
-							"Name": alertName,
+							"Name":         alertName,
 							"GeneratorURL": alert.GeneratorURL,
 						},
 					})
@@ -78,7 +78,7 @@ func webhook(c *gin.Context) {
 				_ = bugsnag.Notify(err, ctx,
 					bugsnag.MetaData{
 						"Alert": {
-							"Name": alertName,
+							"Name":     alertName,
 							"RawQuery": generatorUrl.RawQuery,
 						},
 					})
@@ -86,10 +86,10 @@ func webhook(c *gin.Context) {
 			}
 
 			// shorten generator URL
-			err, n := cli.ReplaceLinks(ctx, alert.GeneratorURL)
+			n, err := cli.ReplaceLinks(ctx, alert.GeneratorURL)
 			if err != nil {
-				err = errors.Wrap(err, "Error shortening generator URL")
-				_ = bugsnag.Notify(err, ctx,
+				e := errors.Wrap(err, "Error shortening generator URL")
+				_ = bugsnag.Notify(e, ctx,
 					bugsnag.MetaData{
 						"Alert": {
 							"Name": alertName,
@@ -98,7 +98,7 @@ func webhook(c *gin.Context) {
 							"URL": n,
 						},
 					})
-				clog.Error(err.Error())
+				clog.Error(e.Error())
 			}
 			alert.GeneratorURL = n
 

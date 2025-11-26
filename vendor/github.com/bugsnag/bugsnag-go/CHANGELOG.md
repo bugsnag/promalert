@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.6.2 (2025-09-02)
+
+### Bug fixes
+
+* Set endpoint with default value only if API key is not nil [#267](https://github.com/bugsnag/bugsnag-go/pull/267)
+
+## 2.6.1 (2025-07-22)
+
+### Bug fixes
+
+* Handle endpoints being set only in env vars [#262](https://github.com/bugsnag/bugsnag-go/pull/262)
+
+## 2.6.0 (2025-07-10)
+
+### Enhancements
+
+* Set default endpoints based on API key [#259](https://github.com/bugsnag/bugsnag-go/pull/259)
+
+## 2.5.1 (2024-10-21)
+
+### Bug fixes
+
+* Move start of delivery goroutine to configure, don't wait on signals in delivery
+  [#250](https://github.com/bugsnag/bugsnag-go/pull/250)
+
+## 2.5.0 (2024-08-27)
+
+### Enhancements
+
+* Limit resource usage while sending events asynchronously \
+  Added MainContext configuration option for providing context from main app
+  [#231](https://github.com/bugsnag/bugsnag-go/pull/231)
+
 ## 2.4.0 (2024-04-15)
 
 ### Enhancements

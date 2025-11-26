@@ -55,9 +55,9 @@ func NewLinksClient() *Client {
 func (cli *Client) error(statusCode int, body io.Reader) error {
 	buf, err := io.ReadAll(body)
 	if err != nil || len(buf) == 0 {
-		return errors.Errorf("Request failed with status code %d", statusCode)
+		return errors.Errorf("request failed with status code %d", statusCode)
 	}
-	return errors.Errorf("StatusCode: %d, Error: %s", statusCode, string(buf))
+	return errors.Errorf("status code: %d, error: %s", statusCode, string(buf))
 }
 
 func (cli *Client) do(req *http.Request) (*http.Response, error) {
@@ -92,21 +92,25 @@ func (cli *Client) Submit(ctx context.Context, target string) (*LinkResponse, er
 		return nil, fmt.Errorf("Do HTTP request: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			clog.Warnf("closing response body: %v", cerr)
+		}
+	}()
 
-	if !(resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices) {
-		return nil, fmt.Errorf("HTTP response: %w", cli.error(resp.StatusCode, resp.Body))
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("http response: %w", cli.error(resp.StatusCode, resp.Body))
 	}
 
 	var u LinkResponse
 	if err := json.NewDecoder(resp.Body).Decode(&u); err != nil {
-		return nil, fmt.Errorf("Parse HTTP body: %w", err)
+		return nil, fmt.Errorf("parse http body: %w", err)
 	}
 
 	return &u, nil
 }
 
-func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, string) {
+func (cli *Client) ReplaceLinks(ctx context.Context, target string) (string, error) {
 	r := xurls.Strict()
 	matches := r.FindAllString(target, -1)
 	for _, match := range matches {
@@ -118,10 +122,10 @@ func (cli *Client) ReplaceLinks(ctx context.Context, target string) (error, stri
 		}
 		url, err := cli.Submit(ctx, match)
 		if err != nil {
-			return err, match
+			return match, err
 		}
 		clog.Infof("Shortened link: %s, to: %s", url.Target, url.Link)
 		target = strings.Replace(target, match, url.Link, 1)
 	}
-	return nil, target
+	return target, nil
 }
