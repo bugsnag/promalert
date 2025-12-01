@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 NAME=promalert
-VERSION=1.2.15
+VERSION=1.2.16
 GCR_HOST=gcr.io/bugsnag-155907
 AWS_PROFILE="insighthub-production"
 ECR_REGION=${ECR_REGION:-us-east-1}
