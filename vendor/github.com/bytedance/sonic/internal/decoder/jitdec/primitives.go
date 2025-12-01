@@ -39,6 +39,20 @@ func decodeJsonUnmarshaler(vv interface{}, s string) error {
     return vv.(json.Unmarshaler).UnmarshalJSON(rt.Str2Mem(s))
 }
 
+// used to distinguish between MismatchQuoted and other MismatchedTyped errors, see issue #670 and #716
+type MismatchQuotedError struct {}
+
+func (*MismatchQuotedError) Error() string {
+    return "mismatch quoted"
+}
+
+func decodeJsonUnmarshalerQuoted(vv interface{}, s string) error {
+    if len(s) < 2 || s[0] != '"' || s[len(s)-1] != '"' {
+        return &MismatchQuotedError{}
+    }
+    return vv.(json.Unmarshaler).UnmarshalJSON(rt.Str2Mem(s[1:len(s)-1]))
+}
+
 func decodeTextUnmarshaler(vv interface{}, s string) error {
     return vv.(encoding.TextUnmarshaler).UnmarshalText(rt.Str2Mem(s))
 }

@@ -8,15 +8,15 @@ import (
 )
 
 const (
-    _entry__skip_object = 176
+    _entry__skip_object = 256
 )
 
 const (
-    _stack__skip_object = 160
+    _stack__skip_object = 184
 )
 
 const (
-    _size__skip_object = 10428
+    _size__skip_object = 15436
 )
 
 var (
@@ -27,16 +27,16 @@ var (
         {0xa, 24},
         {0xc, 32},
         {0xd, 40},
-        {0x11, 48},
-        {0x26b7, 160},
-        {0x26b8, 48},
-        {0x26ba, 40},
-        {0x26bc, 32},
-        {0x26be, 24},
-        {0x26c0, 16},
-        {0x26c1, 8},
-        {0x26c2, 0},
-        {0x28bc, 160},
+        {0x14, 48},
+        {0x39b6, 184},
+        {0x39b7, 48},
+        {0x39b9, 40},
+        {0x39bb, 32},
+        {0x39bd, 24},
+        {0x39bf, 16},
+        {0x39c0, 8},
+        {0x39c1, 0},
+        {0x3c4c, 184},
     }
 )
 

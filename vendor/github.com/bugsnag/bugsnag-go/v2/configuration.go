@@ -1,12 +1,21 @@
 package bugsnag
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+)
+
+const (
+	SECONDARY_ENDPOINT_PREFIX = "00000"
+	SECONDARY_NOTIFY          = "https://notify.bugsnag.smartbear.com"
+	SECONDARY_SESSION         = "https://sessions.bugsnag.smartbear.com"
+	DEFAULT_NOTIFY            = "https://notify.bugsnag.com"
+	DEFAULT_SESSIONS          = "https://sessions.bugsnag.com"
 )
 
 // Endpoints hold the HTTP endpoints of the notifier.
@@ -58,6 +67,11 @@ type Configuration struct {
 
 	// The Release stages to notify in. If you set this then bugsnag-go will
 	// only send notifications to Bugsnag if the ReleaseStage is listed here.
+	EnabledReleaseStages []string
+
+	// DEPRECATED - use EnabledReleaseStages instead.
+	// The Release stages to notify in. If you set this then bugsnag-go will
+	// only send notifications to Bugsnag if the ReleaseStage is listed here.
 	NotifyReleaseStages []string
 
 	// packages that are part of your app. Bugsnag uses this to determine how
@@ -101,6 +115,12 @@ type Configuration struct {
 	// Whether bugsnag should notify synchronously. This defaults to false which
 	// causes bugsnag-go to spawn a new goroutine for each notification.
 	Synchronous bool
+
+	// Context created in the main program
+	// Used in event delivery - after this context is marked Done
+	// the event sending goroutine will switch to a graceful shutdown
+	// and will try to send any remaining events.
+	MainContext context.Context
 	// Whether the notifier should send all sessions recorded so far to Bugsnag
 	// when repanicking to ensure that no session information is lost in a
 	// fatal crash.
@@ -148,6 +168,9 @@ func (config *Configuration) update(other *Configuration) *Configuration {
 	if other.Logger != nil {
 		config.Logger = other.Logger
 	}
+	if other.EnabledReleaseStages != nil {
+		config.EnabledReleaseStages = other.EnabledReleaseStages
+	}
 	if other.NotifyReleaseStages != nil {
 		config.NotifyReleaseStages = other.NotifyReleaseStages
 	}
@@ -160,10 +183,20 @@ func (config *Configuration) update(other *Configuration) *Configuration {
 	if other.Synchronous {
 		config.Synchronous = true
 	}
+	if other.MainContext != nil {
+		config.MainContext = other.MainContext
+		publisher.setMainProgramContext(other.MainContext)
+	}
 
 	if other.AutoCaptureSessions != nil {
 		config.AutoCaptureSessions = other.AutoCaptureSessions
 	}
+
+	// Prefer to use new EnabledReleaseStages over deprecated NotifyReleaseStages
+	if config.EnabledReleaseStages == nil {
+		config.EnabledReleaseStages = config.NotifyReleaseStages
+	}
+
 	config.updateEndpoints(&other.Endpoints)
 	return config
 }
@@ -184,18 +217,48 @@ func (config *Configuration) IsAutoCaptureSessions() bool {
 }
 
 func (config *Configuration) updateEndpoints(endpoints *Endpoints) {
+	sessionsDisabled := false
+
+	// custom endpoint provided
 	if endpoints.Notify != "" {
 		config.Endpoints.Notify = endpoints.Notify
 		if endpoints.Sessions == "" {
 			config.Logger.Printf("WARNING: Bugsnag notify endpoint configured without also configuring the sessions endpoint. No sessions will be recorded")
 			config.Endpoints.Sessions = ""
+			sessionsDisabled = true
 		}
+	} else {
+		// no custom endpoint provided, use defaults
+		if config.Endpoints.Notify == "" && config.APIKey != "" {
+			// notify endpoint not set, calculate default based on API key
+			if strings.HasPrefix(config.APIKey, SECONDARY_ENDPOINT_PREFIX) {
+				config.Endpoints.Notify = SECONDARY_NOTIFY
+			} else {
+				config.Endpoints.Notify = DEFAULT_NOTIFY
+			}
+		}
+		// notify endpoint already set, do not override it
 	}
+
+	// custom sessions endpoint provided
 	if endpoints.Sessions != "" {
 		if endpoints.Notify == "" {
 			panic("FATAL: Bugsnag sessions endpoint configured without also changing the notify endpoint. Bugsnag cannot identify where to report errors")
 		}
 		config.Endpoints.Sessions = endpoints.Sessions
+	} else {
+		// no custom sessions endpoint provided, use defaults
+		if !sessionsDisabled {
+			if config.Endpoints.Sessions == "" && config.APIKey != "" {
+				// sessions endpoint not set, calculate default based on API key
+				if strings.HasPrefix(config.APIKey, SECONDARY_ENDPOINT_PREFIX) {
+					config.Endpoints.Sessions = SECONDARY_SESSION
+				} else {
+					config.Endpoints.Sessions = DEFAULT_SESSIONS
+				}
+			}
+			// sessions endpoint already set, do not override it
+		}
 	}
 }
 
@@ -258,13 +321,13 @@ func (config *Configuration) logf(fmt string, args ...interface{}) {
 }
 
 func (config *Configuration) notifyInReleaseStage() bool {
-	if config.NotifyReleaseStages == nil {
+	if config.EnabledReleaseStages == nil {
 		return true
 	}
 	if config.ReleaseStage == "" {
 		return true
 	}
-	for _, r := range config.NotifyReleaseStages {
+	for _, r := range config.EnabledReleaseStages {
 		if r == config.ReleaseStage {
 			return true
 		}
@@ -297,6 +360,9 @@ func (config *Configuration) loadEnv() {
 	}
 	if appType := os.Getenv("BUGSNAG_APP_TYPE"); appType != "" {
 		envConfig.AppType = appType
+	}
+	if enabledStages := os.Getenv("BUGSNAG_ENABLED_RELEASE_STAGES"); enabledStages != "" {
+		envConfig.EnabledReleaseStages = strings.Split(enabledStages, ",")
 	}
 	if stages := os.Getenv("BUGSNAG_NOTIFY_RELEASE_STAGES"); stages != "" {
 		envConfig.NotifyReleaseStages = strings.Split(stages, ",")

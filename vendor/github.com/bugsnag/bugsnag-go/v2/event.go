@@ -142,7 +142,9 @@ func newEvent(rawData []interface{}, notifier *Notifier) (*Event, *Configuration
 			event.Stacktrace = make([]StackFrame, len(err.StackFrames()))
 
 		case bool:
-			config = config.merge(&Configuration{Synchronous: bool(datum)})
+			// clone without merging to avoid double-call to Configuration.update
+			config = config.clone()
+			config.Synchronous = bool(datum)
 
 		case severity:
 			event.Severity = datum
@@ -192,8 +194,9 @@ func newEvent(rawData []interface{}, notifier *Notifier) (*Event, *Configuration
 }
 
 func generateStacktrace(err *errors.Error, config *Configuration) []StackFrame {
-	stack := make([]StackFrame, len(err.StackFrames()))
-	for i, frame := range err.StackFrames() {
+	frames := err.StackFrames()
+	stack := make([]StackFrame, len(frames))
+	for i, frame := range frames {
 		file := frame.File
 		inProject := config.isProjectPackage(frame.Package)
 

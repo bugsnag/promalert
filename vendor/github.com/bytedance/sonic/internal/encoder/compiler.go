@@ -127,31 +127,40 @@ func (self *Compiler) compileOne(p *ir.Program, sp int, vt reflect.Type, pv bool
 	}
 }
 
-func (self *Compiler) compileRec(p *ir.Program, sp int, vt reflect.Type, pv bool) {
-	pr := self.pv
+func (self *Compiler) tryCompileMarshaler(p *ir.Program, vt reflect.Type, pv bool) bool {
 	pt := reflect.PtrTo(vt)
 
 	/* check for addressable `json.Marshaler` with pointer receiver */
 	if pv && pt.Implements(vars.JsonMarshalerType) {
 		addMarshalerOp(p, ir.OP_marshal_p, pt, vars.JsonMarshalerType)
-		return
+		return true
 	}
 
 	/* check for `json.Marshaler` */
 	if vt.Implements(vars.JsonMarshalerType) {
 		self.compileMarshaler(p, ir.OP_marshal, vt, vars.JsonMarshalerType)
-		return
+		return true
 	}
 
 	/* check for addressable `encoding.TextMarshaler` with pointer receiver */
 	if pv && pt.Implements(vars.EncodingTextMarshalerType) {
 		addMarshalerOp(p, ir.OP_marshal_text_p, pt, vars.EncodingTextMarshalerType)
-		return
+		return true
 	}
 
 	/* check for `encoding.TextMarshaler` */
 	if vt.Implements(vars.EncodingTextMarshalerType) {
 		self.compileMarshaler(p, ir.OP_marshal_text, vt, vars.EncodingTextMarshalerType)
+		return true
+	}
+
+	return false
+}
+
+func (self *Compiler) compileRec(p *ir.Program, sp int, vt reflect.Type, pv bool) {
+	pr := self.pv
+
+	if self.tryCompileMarshaler(p, vt, pv) {
 		return
 	}
 
@@ -210,7 +219,7 @@ func (self *Compiler) compileOps(p *ir.Program, sp int, vt reflect.Type) {
 	case reflect.Struct:
 		self.compileStruct(p, sp, vt)
 	default:
-		panic(vars.Error_type(vt))
+		self.compileUnsupportedType(p, vt)
 	}
 }
 
@@ -431,7 +440,8 @@ func (self *Compiler) compileStructBody(p *ir.Program, sp int, vt reflect.Type) 
 	p.Add(ir.OP_cond_set)
 
 	/* compile each field */
-	for _, fv := range resolver.ResolveStruct(vt) {
+	fvs := resolver.ResolveStruct(vt)
+	for i, fv := range fvs {
 		var s []int
 		var o resolver.Offset
 
@@ -454,7 +464,12 @@ func (self *Compiler) compileStructBody(p *ir.Program, sp int, vt reflect.Type) 
 		/* check for "omitempty" option */
 		if fv.Type.Kind() != reflect.Struct && fv.Type.Kind() != reflect.Array && (fv.Opts&resolver.F_omitempty) != 0 {
 			s = append(s, p.PC())
-			self.compileStructFieldZero(p, fv.Type)
+			self.compileStructFieldEmpty(p, fv.Type)
+		}
+		/* check for "omitzero" option */
+		if fv.Opts&resolver.F_omitzero != 0 {
+			s = append(s, p.PC())
+			p.VField(ir.OP_is_zero, &fvs[i])
 		}
 
 		/* add the comma if not the first element */
@@ -485,6 +500,12 @@ func (self *Compiler) compileStructBody(p *ir.Program, sp int, vt reflect.Type) 
 }
 
 func (self *Compiler) compileStructFieldStr(p *ir.Program, sp int, vt reflect.Type) {
+	// NOTICE: according to encoding/json, Marshaler type has higher priority than string option
+	// see issue: 
+	if self.tryCompileMarshaler(p, vt, self.pv) {
+		return
+	}
+
 	pc := -1
 	ft := vt
 	sv := false
@@ -559,7 +580,7 @@ func (self *Compiler) compileStructFieldStr(p *ir.Program, sp int, vt reflect.Ty
 	}
 }
 
-func (self *Compiler) compileStructFieldZero(p *ir.Program, vt reflect.Type) {
+func (self *Compiler) compileStructFieldEmpty(p *ir.Program, vt reflect.Type) {
 	switch vt.Kind() {
 	case reflect.Bool:
 		p.Add(ir.OP_is_zero_1)
@@ -611,15 +632,15 @@ func (self *Compiler) compileStructFieldQuoted(p *ir.Program, sp int, vt reflect
 }
 
 func (self *Compiler) compileInterface(p *ir.Program, vt reflect.Type) {
-	x := p.PC()
-	p.Add(ir.OP_is_nil_p1)
-
 	/* iface and efaces are different */
 	if vt.NumMethod() == 0 {
 		p.Add(ir.OP_eface)
-	} else {
-		p.Add(ir.OP_iface)
+		return
 	}
+
+	x := p.PC()
+	p.Add(ir.OP_is_nil_p1)
+	p.Add(ir.OP_iface)
 
 	/* the "null" value */
 	e := p.PC()
@@ -628,6 +649,11 @@ func (self *Compiler) compileInterface(p *ir.Program, vt reflect.Type) {
 	p.Add(ir.OP_null)
 	p.Pin(e)
 }
+
+func (self *Compiler) compileUnsupportedType(p *ir.Program, vt reflect.Type) {
+	p.Rtt(ir.OP_unsupported, vt)
+}
+
 
 func (self *Compiler) compileMarshaler(p *ir.Program, op ir.Op, vt reflect.Type, mt reflect.Type) {
 	pc := p.PC()

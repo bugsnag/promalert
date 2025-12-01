@@ -36,6 +36,7 @@ const (
     _PtrBytes   = _PTR_SIZE / 8
     _FsmOffset  = (_MaxStack + 1) * _PtrBytes
     _DbufOffset = _FsmOffset + int64(unsafe.Sizeof(types.StateMachine{})) + types.MAX_RECURSE * _PtrBytes
+    _EpOffset   = _DbufOffset + _MaxDigitNums
     _StackSize  = unsafe.Sizeof(_Stack{})
 )
 
@@ -53,6 +54,7 @@ type _Stack struct {
     mm types.StateMachine
     vp [types.MAX_RECURSE]unsafe.Pointer
     dp [_MaxDigitNums]byte
+    ep unsafe.Pointer
 }
 
 type _Decoder func(
@@ -61,8 +63,8 @@ type _Decoder func(
     vp unsafe.Pointer,
     sb *_Stack,
     fv uint64,
-    sv string, // DO NOT pass value to this arguement, since it is only used for local _VAR_sv
-    vk unsafe.Pointer, // DO NOT pass value to this arguement, since it is only used for local _VAR_vk
+    sv string, // DO NOT pass value to this argument, since it is only used for local _VAR_sv
+    vk unsafe.Pointer, // DO NOT pass value to this argument, since it is only used for local _VAR_vk
 ) (int, error)
 
 var _KeepAlive struct {
@@ -100,7 +102,7 @@ func newStack() *_Stack {
 }
 
 func resetStack(p *_Stack) {
-    memclrNoHeapPointers(unsafe.Pointer(p), _StackSize)
+    rt.MemclrNoHeapPointers(unsafe.Pointer(p), _StackSize)
 }
 
 func freeStack(p *_Stack) {
