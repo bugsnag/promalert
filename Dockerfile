@@ -11,7 +11,7 @@ RUN apk add --no-cache git libc6-compat make
 ENV GO111MODULE=on
 
 # go build will fail in alpine if this is enabled as it looks for gcc
-ENV CGO_ENABLED 0
+ENV CGO_ENABLED=0
 
 # Copy all source code and required files into the build directory
 COPY . /build/

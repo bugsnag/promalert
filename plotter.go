@@ -28,7 +28,8 @@ import (
 var labelText = regexp.MustCompile("{(.*)}")
 
 func GetPlotExpr(alertFormula string) []PlotExpr {
-	expr, _ := parser.ParseExpr(alertFormula)
+	p := parser.NewParser(parser.Options{})
+	expr, _ := p.ParseExpr(alertFormula)
 	if parenExpr, ok := expr.(*parser.ParenExpr); ok {
 		expr = parenExpr.Expr
 		clog.Infof("Removing redundant brackets: %v", expr.String())
